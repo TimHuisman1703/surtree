@@ -1,24 +1,4 @@
-﻿  binary_data.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\binary_data.cpp(115,9): warning C4244: 'return': conversion from 'const __int64' to 'int', possible loss of data
-  branch.cpp
-  decision_tree.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
-  feature_vector_binary.cpp
-  internal_node_description.cpp
-  key_value_heap.cpp
-  symmetric_matrix_counter.cpp
-  symmetric_matrix_positive_negative_counter_2d.cpp
-  binary_data_difference_computer.cpp
-  branch_cache.cpp
-  cache_closure.cpp
-  dataset_cache.cpp
-  feature_selector_abstract.cpp
-  hyper_parameter_tuner.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\hyper_parameter_tuner.cpp(46,22): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\hyper_parameter_tuner.cpp(90,20): warning C4018: '<': signed/unsigned mismatch
-  similarity_lower_bound_computer.cpp
-  solver.cpp
+﻿  solver.cpp
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\feature_selector_gini.h(54,38): warning C4018: '<': signed/unsigned mismatch
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\feature_selector_gini.h(71,34): warning C4018: '<': signed/unsigned mismatch
@@ -38,31 +18,9 @@ C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(123,21): wa
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(134,25): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(137,20): warning C4244: 'initializing': conversion from 'int64_t' to 'int', possible loss of data
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(191,16): warning C4566: character represented by universal-character-name '\u0107' cannot be represented in the current code page (1252)
-  specialised_binary_classification_decision_tree_solver.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\specialised_binary_classification_decision_tree_solver.cpp(149,54): warning C4018: '>': signed/unsigned mismatch
-  specialised_branch_misclassification_computer.cpp
-  specialised_general_branch_misclassification_computer.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\specialised_general_branch_misclassification_computer.cpp(96,33): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\specialised_general_branch_misclassification_computer.cpp(99,33): warning C4018: '<': signed/unsigned mismatch
-  specialised_general_classification_decision_tree_solver.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\specialised_general_classification_decision_tree_solver.cpp(153,55): warning C4018: '>': signed/unsigned mismatch
-  Compiling...
-  file_reader.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Utilities\file_reader.cpp(34,26): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Utilities\file_reader.cpp(42,30): warning C4018: '<=': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Utilities\file_reader.cpp(77,20): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Utilities\file_reader.cpp(80,21): warning C4018: '<': signed/unsigned mismatch
-  parameter_handler.cpp
-  main.cpp
-C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
-C:\Emir\Programerski projekti\MurTree\main.cpp(321,71): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-C:\Emir\Programerski projekti\MurTree\main.cpp(322,45): warning C4244: 'argument': conversion from 'int64_t' to 'unsigned int', possible loss of data
-C:\Emir\Programerski projekti\MurTree\main.cpp(333,53): warning C4244: '=': conversion from 'int64_t' to 'int', possible loss of data
-C:\Emir\Programerski projekti\MurTree\main.cpp(334,57): warning C4244: '=': conversion from 'int64_t' to 'int', possible loss of data
   Generating code
-  Previous IPDB not found, fall back to full compilation.
-  All 3018 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  2 of 3018 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    3 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   MurTree.vcxproj -> C:\Emir\Programerski projekti\MurTree\Release\MurTree.exe
