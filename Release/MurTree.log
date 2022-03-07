@@ -1,4 +1,13 @@
-﻿  solver.cpp
+﻿  binary_data_difference_computer.cpp
+  branch_cache.cpp
+  cache_closure.cpp
+  dataset_cache.cpp
+  hyper_parameter_tuner.cpp
+C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
+C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\hyper_parameter_tuner.cpp(46,22): warning C4018: '<': signed/unsigned mismatch
+C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\hyper_parameter_tuner.cpp(90,20): warning C4018: '<': signed/unsigned mismatch
+  similarity_lower_bound_computer.cpp
+  solver.cpp
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\feature_selector_gini.h(54,38): warning C4018: '<': signed/unsigned mismatch
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\feature_selector_gini.h(71,34): warning C4018: '<': signed/unsigned mismatch
@@ -18,9 +27,15 @@ C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(123,21): wa
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(134,25): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(137,20): warning C4244: 'initializing': conversion from 'int64_t' to 'int', possible loss of data
 C:\Emir\Programerski projekti\MurTree\code\MurTree\Engine\solver.cpp(191,16): warning C4566: character represented by universal-character-name '\u0107' cannot be represented in the current code page (1252)
+  main.cpp
+C:\Emir\Programerski projekti\MurTree\code\MurTree\Data Structures\decision_node.h(63,29): warning C4018: '<': signed/unsigned mismatch
+C:\Emir\Programerski projekti\MurTree\main.cpp(321,71): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Emir\Programerski projekti\MurTree\main.cpp(322,45): warning C4244: 'argument': conversion from 'int64_t' to 'unsigned int', possible loss of data
+C:\Emir\Programerski projekti\MurTree\main.cpp(333,53): warning C4244: '=': conversion from 'int64_t' to 'int', possible loss of data
+C:\Emir\Programerski projekti\MurTree\main.cpp(334,57): warning C4244: '=': conversion from 'int64_t' to 'int', possible loss of data
   Generating code
-  2 of 3018 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  30 of 3018 functions ( 1.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    3 functions had inline decision re-evaluated but remain unchanged
+    6 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   MurTree.vcxproj -> C:\Emir\Programerski projekti\MurTree\Release\MurTree.exe
