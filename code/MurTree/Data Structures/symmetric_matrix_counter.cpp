@@ -9,9 +9,8 @@
 
 namespace MurTree
 {
-SymmetricMatrixCounter::SymmetricMatrixCounter(int num_labels, int num_features) :
+SymmetricMatrixCounter::SymmetricMatrixCounter(int num_features) :
 	counts_(0),
-	num_labels_(num_labels),
 	num_features_(num_features)
 {
 	counts_ = new int[NumElements()];
@@ -24,17 +23,17 @@ SymmetricMatrixCounter::~SymmetricMatrixCounter()
 	counts_ = 0;
 }
 
-int SymmetricMatrixCounter::operator()(int label, int feature1, int feature2) const
+int SymmetricMatrixCounter::operator()(int feature1, int feature2) const
 {
 	assert(feature1 <= feature2);
-	int index = num_labels_ * IndexSymmetricMatrix(feature1, feature2) + label;
+	int index = IndexSymmetricMatrix(feature1, feature2);
 	return counts_[index];
 }
 
-int& SymmetricMatrixCounter::operator()(int label, int feature1, int feature2)
+int& SymmetricMatrixCounter::operator()(int feature1, int feature2)
 {
 	assert(feature1 <= feature2);
-	int index = num_labels_ * IndexSymmetricMatrix(feature1, feature2) + label;
+	int index = IndexSymmetricMatrix(feature1, feature2);
 	return counts_[index];
 }
 
@@ -47,7 +46,7 @@ void SymmetricMatrixCounter::ResetToZeros()
 int SymmetricMatrixCounter::NumElements() const
 {
 	//the matrix is symmetric, and effectively each entry stores num_labels entries, corresponding the counts for each label
-	return num_labels_ * ((num_features_ * (num_features_ + 1)) / 2);
+	return (num_features_ * (num_features_ + 1)) / 2;
 }
 
 int SymmetricMatrixCounter::IndexSymmetricMatrix(int index_row, int index_column) const

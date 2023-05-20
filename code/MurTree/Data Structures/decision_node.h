@@ -3,21 +3,21 @@
 
 #pragma once
 
+#define AVERAGE_LOGLIKELIHOOD
+
 #include "../Utilities/runtime_assert.h"
 #include "binary_data.h"
-
-#include <stdint.h>
 
 namespace MurTree
 {
 //TODO Memory leaks
 struct DecisionNode
 {
-	static DecisionNode* CreateLabelNode(int label)
+	static DecisionNode* CreateLabelNode(double theta)
 	{
 		DecisionNode* node = new DecisionNode();
 		node->feature_ = INT32_MAX;
-		node->label_ = label;
+		node->theta_ = theta;
 		node->left_child_ = NULL;
 		node->right_child_ = NULL;
 		return node;
@@ -26,7 +26,7 @@ struct DecisionNode
 	{
 		DecisionNode* node = new DecisionNode();
 		node->feature_ = feature;
-		node->label_ = INT32_MAX;
+		node->theta_ = DBL_MAX;
 		node->left_child_ = NULL;
 		node->right_child_ = NULL;
 		return node;
@@ -44,40 +44,56 @@ struct DecisionNode
 		return 1 + left_child_->NumNodes() + right_child_->NumNodes();
 	}
 
-	bool IsLabelNode() const { return label_ != INT32_MAX; }
+	bool IsLabelNode() const { return feature_ == INT32_MAX; }
 	bool IsFeatureNode() const { return feature_ != INT32_MAX; }
 
-	int ComputeMisclassificationScore(BinaryDataInternal& data)
+	double ComputeError(BinaryDataInternal& data)
 	{
-		int misclassifications = 0;
-		for (int label = 0; label < data.NumLabels(); label++)
+		double error = 0.0;
+		for (FeatureVectorBinary* fv : data.GetInstances())
 		{
-			for (FeatureVectorBinary* fv : data.GetInstancesForLabel(label))
-			{
-				misclassifications += (Classify(fv) != label);
+			double theta = Classify(fv);
+			double hazard = fv->GetHazard();
+
+			error += theta * hazard;
+			if (fv->GetEvent()) {
+				error -= log(hazard) + log(theta) + 1;
 			}
 		}
-		return misclassifications;
+
+#ifdef AVERAGE_LOGLIKELIHOOD
+		error = error / data.GetInstances().size();
+#endif
+
+		return std::max(error, 0.0);
 	}
 
-	int ComputeMisclassificationScore(std::vector<std::vector<FeatureVectorBinary> >& instances)
+	double ComputeError(std::vector<FeatureVectorBinary> instances)
 	{
-		int misclassifications = 0;
-		for (int label = 0; label < instances.size(); label++)
+		double error = 0.0;
+		for (FeatureVectorBinary fv : instances)
 		{
-			for (FeatureVectorBinary& fv : instances[label])
-			{
-				misclassifications += (Classify(&fv) != label);
+			double theta = Classify(&fv);
+			double hazard = fv.GetHazard();
+
+			error += theta * hazard;
+			if (fv.GetEvent()) {
+				error -= log(hazard) + log(theta) + 1;
 			}
 		}
-		return misclassifications;
+
+#ifdef AVERAGE_LOGLIKELIHOOD
+		error = error / instances.size();
+#endif
+
+		return std::max(error, 0.0);
 	}
 	
-	int Classify(FeatureVectorBinary* feature_vector)
+	double Classify(FeatureVectorBinary* feature_vector)
 	{
 		if (IsLabelNode())
 		{
-			return label_;
+			return theta_;
 		}
 		else if (feature_vector->IsFeaturePresent(feature_))
 		{
@@ -89,7 +105,8 @@ struct DecisionNode
 		}
 	}
 
-	int feature_, label_;
+	int feature_;
+	double theta_;
 	DecisionNode* left_child_, * right_child_;
 };
 }//end namespace MurTree

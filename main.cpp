@@ -59,6 +59,16 @@ MurTree::ParameterHandler DefineParameters()
 
 	parameters.DefineIntegerParameter
 	(
+		"min-num-nodes",
+		"Minimum number of *decision/feature nodes* allowed.",
+		0, //default value
+		"Main Parameters",
+		0,
+		INT32_MAX
+	);
+
+	parameters.DefineIntegerParameter
+	(
 		"max-num-nodes",
 		"Maximum number of *decision/feature nodes* allowed. Note that a tree with k feature nodes has k+1 leaf nodes.",
 		7, //default value
@@ -134,7 +144,7 @@ MurTree::ParameterHandler DefineParameters()
 		"Feature ordering strategy used to determine the order in which features will be inspected in each node.",
 		"in-order", //default value
 		"Algorithmic Parameters",
-		{ "in-order", "random", "gini" }
+		{ "in-order", "random" }
 	);
 
 	parameters.DefineIntegerParameter
@@ -166,14 +176,14 @@ MurTree::ParameterHandler DefineParameters()
 		INT32_MAX
 	);
 
-	parameters.DefineIntegerParameter
+	parameters.DefineFloatParameter
 	(
 		"upper-bound",
 		"Initial upper bound.",
-		INT32_MAX, //default value
+		DBL_MAX, //default value
 		"Algorithmic Parameters",
 		0,
-		INT32_MAX
+		DBL_MAX
 	);
 
 	//Tuning parameters
@@ -212,13 +222,19 @@ void CheckParameters(MurTree::ParameterHandler& parameters)
 		std::cout << "Error: No file given!\n"; exit(1);
 	}
 
+	if (parameters.GetIntegerParameter("min-num-nodes") > parameters.GetIntegerParameter("max-num-nodes"))
+	{
+		std::cout << "Error: The minimum number of nodes is greater than the maximum number of nodes!\n";
+		exit(1);
+	}
+
 	if (parameters.GetIntegerParameter("max-depth") > parameters.GetIntegerParameter("max-num-nodes"))
 	{
 		std::cout << "Error: The depth parameter is greater than the number of nodes!\n";
 		exit(1);
 	}
 
-	if (parameters.GetIntegerParameter("max-num-nodes") > (uint32_t(1) << parameters.GetIntegerParameter("max-depth")) - 1)
+	if (parameters.GetIntegerParameter("max-num-nodes") > (static_cast<long long>(uint32_t(1)) << parameters.GetIntegerParameter("max-depth")) - 1)
 	{
 		std::cout << "Error: The number of nodes exceeds the limit imposed by the depth!\n";
 		exit(1);
@@ -234,6 +250,24 @@ void CheckParameters(MurTree::ParameterHandler& parameters)
 	{
 		std::cout << "Error: hyper tuning specified but no output file location given\n";
 		exit(1);
+	}
+}
+
+void PrintTree(MurTree::DecisionNode* node, std::ofstream& out)
+{
+	if (node->IsLabelNode()) {
+		out << "{\"theta\":";
+		out << node->theta_;
+		out << "}";
+	}
+	else {
+		out << "{\"feat\":";
+		out << node->feature_;
+		out << ",\"0\":";
+		PrintTree(node->left_child_, out);
+		out << ",\"1\":";
+		PrintTree(node->right_child_, out);
+		out << "}";
 	}
 }
 
@@ -256,74 +290,43 @@ int main(int argc, char* argv[])
 	else
 	{
 		std::cout << "Manual activation, no parameters supplied\n";
-		exit(1);
 
 		manual_activation = true;
 
 		std::string file_location;
 
-		file_location = "datasetsDL\\anneal.txt";
-		//file_location = "datasetsDL\\german-credit.txt";
-		//file_location = "datasetsDL\\vehicle.txt";
-		//file_location = "datasetsNina\\converted\\colic-un_converted.txt";
-		//file_location = "datasetsDL\\letter.txt";	
-		//file_location = "datasetsDL\\lymph.txt";
-		//file_location = "datasetsDL\\yeast.txt";
-		//file_location = "datasetsDL\\pendigits.txt";		
-		//file_location = "datasetsDL\\ionosphere.txt";
-		//file_location = "datasetsDL\\diabetes.txt";
-		//file_location = "datasetsDL\\audiology.txt";
-		//file_location = "datasetsDL\\hypothyroid.txt";
-		//file_location = "datasetsDL\\hepatitis.txt";
-		//file_location = "datasetsDL\\soybean.txt";
-		//file_location = "datasetsDL\\australian-credit.txt";
-		//file_location = "datasetsDL\\anneal.txt";
-		//file_location = "datasetsNL\\binarised\\wine_categorical_bin.txt";
-		//file_location = "datasetsNL\\binarised\\winequality-red_categorical_bin.txt";	
-		//file_location = "datasetsNL\\binarised\\magic04_categorical_bin.txt";
-		//file_location = "datasetsNL\\binarised\\default_credit_categorical_bin.txt";
-		//file_location = "datasetsNina\\australian-un.csv";
-		//file_location = "datasetFair\\taiwan_binarised_caim.txt";
-		//file_location = "datasetFair\\taiwan_binarised_ameva.txt";
-		//file_location = "UCI\\wine_mdlp_binarised.txt";
-		//file_location = "UCI\\bank_binarised.txt";
-		//file_location = "DatasetsAnnachan\\rollouts_escape_room_10000_mdpl_binarised.txt";
-		//file_location = "monk1_bin.txt";
-		//file_location = "datasetsNina\\converted\\irish-un_converted.txt";
-		//file_location = "temp_dataset.txt";
-		//file_location = "datasetsNL\\binarised\\monk3_bin.txt";
-		//file_location = "datasetsHu\\compas-binary.txt";
-		//file_location = "datasetsHu\\fico-binary.txt";
-		//file_location = "datasetsHu\\monk3-hu.txt";
-		//file_location = "datasetsNina\\converted\\appendicitis-un_converted.txt";
-		//file_location = "datasetsNina\\converted\\backache-un_converted.txt";
-		//file_location = "datasetsNina\\converted\\australian-un_converted.txt";
-		//file_location = "datasetsNina\\converted\\cleve-un_converted.txt";
-		//file_location = "datasetsNina\\converted\\cleve-un_converted.txt";
+		file_location = "datasetsSA\\LeukSurv.txt";
+		//file_location = "datasetsSA\\ova.txt";
+
+		// Tag for Ctrl+F-ing: SETTINGS
 
 		parameters.SetStringParameter("file", file_location);
+		parameters.SetStringParameter("result-file", "result.txt");
 		parameters.SetBooleanParameter("hyper-parameter-tuning", false);
 		//splits_location_prefix = "datasetsTesting\\MurTreeSplits\\anneal";
 		//hyper_parameter_stats_file = "datasetsTesting\\MurTreeHyperStats\\anneal_new.txt";
 		single_parameter_set_tuning = false;
 		parameters.SetIntegerParameter("duplicate-factor", 1);
-		parameters.SetStringParameter("cache-type", "dataset");// "closure";// "branch";
+		parameters.SetStringParameter("cache-type", "branch");// "closure";// "dataset";
 		parameters.SetBooleanParameter("all-trees", false);
-		parameters.SetIntegerParameter("max-depth", 4);
-		parameters.SetIntegerParameter("max-num-nodes", 15);
-		parameters.SetIntegerParameter("upper-bound", INT32_MAX);//INT32_MAX
+		parameters.SetIntegerParameter("max-depth", 3);
+		parameters.SetIntegerParameter("min-num-nodes", 0);
+		parameters.SetIntegerParameter("max-num-nodes", 7);
+		parameters.SetFloatParameter("upper-bound", DBL_MAX);//INT32_MAX
 		parameters.SetFloatParameter("sparse-coefficient", 0.00);
 		parameters.SetBooleanParameter("similarity-lower-bound", true);
 		parameters.SetStringParameter("node-selection", "dynamic");
 		parameters.SetStringParameter("feature-ordering", "in-order");
+
+		parameters.SetBooleanParameter("verbose", true);
 	}
 
 	CheckParameters(parameters);
 
 	if (parameters.GetBooleanParameter("verbose")) { parameters.PrintParameterValues(); }
 
-	if (parameters.GetIntegerParameter("random-seed") == -1) { srand(time(0)); }
-	else { srand(parameters.GetIntegerParameter("random-seed")); }
+	if (parameters.GetIntegerParameter("random-seed") == -1) { srand((int)time(0)); }
+	else { srand((int)parameters.GetIntegerParameter("random-seed")); }
 
 	MurTree::Stopwatch stopwatch;
 	stopwatch.Initialise(0);
@@ -334,8 +337,8 @@ int main(int argc, char* argv[])
 		MurTree::HyperParameterTuningInput hyper_p;
 		hyper_p.benchmark_location = parameters.GetStringParameter("file");
 		hyper_p.partition_files_location_prefix = splits_location_prefix;
-		hyper_p.max_depth = parameters.GetIntegerParameter("max-depth");
-		hyper_p.max_num_nodes = parameters.GetIntegerParameter("max-num-nodes");
+		hyper_p.max_depth = (int)parameters.GetIntegerParameter("max-depth");
+		hyper_p.max_num_nodes = (int)parameters.GetIntegerParameter("max-num-nodes");
 		hyper_p.single_parameter_set_tuning = single_parameter_set_tuning;
 
 		clock_t c_s = clock();
@@ -365,7 +368,7 @@ int main(int argc, char* argv[])
 		{
 			if (mur_tree_solver_result.decision_tree_)
 			{
-				std::cout << "MISCLASSIFICATION SCORE: " << mur_tree_solver_result.misclassifications << "\n";
+				std::cout << "ERROR: " << mur_tree_solver_result.error << "\n";
 				std::cout << "DEPTH: " << mur_tree_solver_result.decision_tree_->Depth() << "\n";
 				std::cout << "NUM NODES: " << mur_tree_solver_result.decision_tree_->NumNodes() << "\n";
 				std::cout << "TIME: " << stopwatch.TimeElapsedInSeconds() << " seconds\n";
@@ -382,18 +385,14 @@ int main(int argc, char* argv[])
 			std::ofstream out(parameters.GetStringParameter("result-file").c_str());
 			//double clock_time_total = (double(clock() - clock_before_solve) / CLOCKS_PER_SEC);
 			//out << clock_time_total << "\n";
-			out << stopwatch.TimeElapsedInSeconds() << "\n";
-			out << 0 << "\n";
-			out << 0 << "\n";
+			out << "Time: " << stopwatch.TimeElapsedInSeconds() << "s\n";
 			
 			if (mur_tree_solver_result.decision_tree_) //print stats if finished within the allocated time
 			{
-				out << mur_tree_solver_result.misclassifications << "\n";
-				out << mur_tree_solver.cache_->NumEntries() << "\n";
-			}
-			else //print failure
-			{
-				out << "-1\n-1\n";
+				out << "Error: " << mur_tree_solver_result.error << "\n";
+				out << "Tree:\n";
+				PrintTree(mur_tree_solver_result.decision_tree_, out);
+				out << "\n";
 			}
 		}
 	}

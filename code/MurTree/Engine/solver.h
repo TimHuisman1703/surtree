@@ -30,13 +30,13 @@ public:
 
 //private:
 
-	void ReplaceData(std::vector<std::vector<FeatureVectorBinary> >& new_instances); //a hack used in parameter tuning
+	void ReplaceData(std::vector<FeatureVectorBinary>& new_instances); //a hack used in parameter tuning
 
 	DecisionNode* ConstructOptimalTree(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes); //reconstructs the optimal tree after the algorithm populated the cache
 		
-	InternalNodeDescription SolveSubtree(BinaryDataInternal &data, Branch &branch, int max_depth, int num_nodes, int upper_bound);
-	InternalNodeDescription SolveSubtreeGeneralCase(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, int upper_bound);
-	InternalNodeDescription SolveTerminalNode(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, int upper_bound);
+	InternalNodeDescription SolveSubtree(BinaryDataInternal &data, Branch &branch, int max_depth, int num_nodes, double upper_bound);
+	InternalNodeDescription SolveSubtreeGeneralCase(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, double upper_bound);
+	InternalNodeDescription SolveTerminalNode(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, double upper_bound);
 	bool UpdateCacheUsingSimilarity(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes);//returns true if the method updated the optimal solution of the branch; otherwise it only (tries) to increase the lower bound
 	
 	InternalNodeDescription CreateInfeasibleNodeDescription();
@@ -44,18 +44,17 @@ public:
 	InternalNodeDescription CombineLeftAndRightChildren(int feature, InternalNodeDescription& left_child, InternalNodeDescription& right_child);
 	ChildSubtreeOrdering GetSortedChildren(ChildSubtreeInfo& left_child, ChildSubtreeInfo& right_child);
 
-	int LeafLabel(BinaryDataInternal& data);
-	int LeafMisclassification(BinaryDataInternal& data);
-	int LabelMisclassification(int label, BinaryDataInternal& data);
+	double LeafTheta(BinaryDataInternal& data);
+	double LeafError(BinaryDataInternal& data);
 
 	bool IsTerminalNode(int depth, int num_nodes);
 	bool IsNodeBetter(InternalNodeDescription node1, InternalNodeDescription node2); //returns true if node1 is better than node2. Assumes both nodes are feasible.
 
-	int num_labels_, num_features_; //for convenience, these are set upon instance creation and not changed
+	int num_features_; //for convenience, these are set upon instance creation and not changed
 	bool verbose_;
 	bool dynamic_child_selection_;
 	AbstractCache *cache_;
-	std::vector<std::vector<FeatureVectorBinary> > feature_vectors_;
+	std::vector<FeatureVectorBinary> feature_vectors_;
 	BinaryDataInternal *binary_data_;
 	Statistics stats_;
 	Stopwatch stopwatch_;

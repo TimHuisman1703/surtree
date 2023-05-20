@@ -20,7 +20,7 @@ public:
 	//DecisionTreeNode decision_tree;
 
 //private:
-	int misclassifications;
+	double error;
 	bool is_proven_optimal;
 	DecisionNode* decision_tree_;
 };

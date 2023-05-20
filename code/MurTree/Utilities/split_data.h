@@ -11,6 +11,6 @@ namespace MurTree
 {
 struct SplitData
 {
-	std::vector<std::vector<FeatureVectorBinary> > training_data, testing_data;
+	std::vector<FeatureVectorBinary> training_data, testing_data;
 };
 }

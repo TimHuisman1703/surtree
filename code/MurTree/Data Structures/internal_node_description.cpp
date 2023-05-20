@@ -6,24 +6,24 @@
 
 namespace MurTree
 {
-InternalNodeDescription::InternalNodeDescription(int feature, int label, int accuracy, int num_nodes_left, int num_nodes_right):
+InternalNodeDescription::InternalNodeDescription(int feature, double theta, double error, int num_nodes_left, int num_nodes_right):
     feature(feature),
-    label(label),
-    misclassification_score(accuracy),
+    theta(theta),
+    error(error),
     num_nodes_left(num_nodes_left),
     num_nodes_right(num_nodes_right)
 {
 }
 
-int InternalNodeDescription::Misclassifications() const
+double InternalNodeDescription::Error() const
 {
     runtime_assert(IsFeasible());
-    return misclassification_score;
+    return error;
 }
 
-int InternalNodeDescription::SparseObjective(int sparse_coefficient) const
+double InternalNodeDescription::SparseObjective(double sparse_coefficient) const
 {
-    return misclassification_score + sparse_coefficient * NumNodes();
+    return error + sparse_coefficient * NumNodes();
 }
 
 int InternalNodeDescription::NumNodes() const
@@ -39,12 +39,12 @@ bool InternalNodeDescription::IsInfeasible() const
 
 bool InternalNodeDescription::IsFeasible() const 
 {
-    return misclassification_score != INT32_MAX;
+    return error != DBL_MAX;
 }
 
 InternalNodeDescription InternalNodeDescription::CreateInfeasibleNodeDescription()
 {
-    return InternalNodeDescription(INT32_MAX, INT32_MAX, INT32_MAX, INT32_MAX, INT32_MAX);
+    return InternalNodeDescription(INT32_MAX, DBL_MAX, DBL_MAX, INT32_MAX, INT32_MAX);
 }
 
 }//end namespace MurTree

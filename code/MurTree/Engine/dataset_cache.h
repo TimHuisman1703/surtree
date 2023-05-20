@@ -29,13 +29,10 @@ struct DatasetHashFunction
 	static int ComputeHashForData(BinaryDataInternal const& data)
 	{
 		int seed = int(data.Size());
-		for (int label = 0; label < data.NumLabels(); label++)
+		for (int i = 0; i < data.NumInstances(); i++)
 		{
-			for (int i = 0; i < data.NumInstancesForLabel(label); i++)
-			{
-				int code = data.GetInstance(label, i)->GetID();
-				seed ^= code + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-			}
+			int code = data.GetInstance(i)->GetID();
+			seed ^= code + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 		}
 		return seed;
 	}
@@ -46,28 +43,20 @@ struct DatasetEquality
 {
 	bool operator()(BinaryDataInternal const& data1, BinaryDataInternal const& data2) const
 	{
-		runtime_assert(data1.NumLabels() == data2.NumLabels() && data1.NumFeatures() == data2.NumFeatures());
+		runtime_assert(data1.NumFeatures() == data2.NumFeatures());
 
 		if (data1.GetHash() != data2.GetHash()) { return false; }
 
 		//basic check on the size
 		if (data1.Size() != data2.Size()) { return false; }
-		//basic check on the size of each individual label
-		for (int label = 0; label < data1.NumLabels(); label++)
-		{
-			if (data1.NumInstancesForLabel(label) != data2.NumInstancesForLabel(label)) { return false; }
-		}
 
 		//now compare individual feature vectors
 		//note that the indicies are kept sorted in the data
-		for (int label = 0; label < data1.NumLabels(); label++)
+		for (int i = 0; i < data1.NumInstances(); i++)
 		{
-			for (int i = 0; i < data1.NumInstancesForLabel(label); i++)
-			{
-				int code1 = data1.GetInstance(label, i)->GetID();
-				int code2 = data2.GetInstance(label, i)->GetID();
-				if (code1 != code2) { return false; }
-			}
+			int code1 = data1.GetInstance(i)->GetID();
+			int code2 = data2.GetInstance(i)->GetID();
+			if (code1 != code2) { return false; }
 		}
 		return true;
 	}
@@ -87,8 +76,8 @@ public:
 	void TransferAssignmentsForEquivalentBranches(const BinaryDataInternal&, const Branch& branch_source, const BinaryDataInternal&, const Branch& branch_destination);//this updates branch_destination with all solutions from branch_source. Should only be done if the branches are equivalent.
 
 	//related to storing/retrieving lower bounds
-	void UpdateLowerBound(BinaryDataInternal&, const Branch& branch, int lower_bound, int depth, int num_nodes);
-	int RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes);
+	void UpdateLowerBound(BinaryDataInternal&, const Branch& branch, double lower_bound, int depth, int num_nodes);
+	double RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes);
 
 	//misc
 	int NumEntries() const;

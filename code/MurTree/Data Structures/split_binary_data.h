@@ -9,16 +9,16 @@ namespace MurTree
 {
 struct SplitBinaryData
 {
-	SplitBinaryData(int num_labels, int num_features):
-		data_without_feature(num_labels, num_features),
-		data_with_feature(num_labels, num_features)
+	SplitBinaryData(int num_features):
+		data_without_feature(num_features),
+		data_with_feature(num_features)
 	{
 	}
 
 
 	SplitBinaryData(int splitting_feature, BinaryDataInternal &data):
-		data_without_feature(data.NumLabels(), data.NumFeatures()),
-		data_with_feature(data.NumLabels(), data.NumFeatures())
+		data_without_feature(data.NumFeatures()),
+		data_with_feature(data.NumFeatures())
 	{
 		SplitData(splitting_feature, data);
 	}
@@ -28,18 +28,15 @@ struct SplitBinaryData
 		data_without_feature.Clear();
 		data_with_feature.Clear();
 		
-		for (int label = 0; label < data.NumLabels(); label++)
+		for (FeatureVectorBinary *fv : data.GetInstances())
 		{
-			for (FeatureVectorBinary *fv : data.GetInstancesForLabel(label))
+			if (fv->IsFeaturePresent(splitting_feature))
 			{
-				if (fv->IsFeaturePresent(splitting_feature))
-				{
-					data_with_feature.AddFeatureVector(fv, label);
-				}
-				else
-				{
-					data_without_feature.AddFeatureVector(fv, label);
-				}
+				data_with_feature.AddFeatureVector(fv);
+			}
+			else
+			{
+				data_without_feature.AddFeatureVector(fv);
 			}
 		}
 	}

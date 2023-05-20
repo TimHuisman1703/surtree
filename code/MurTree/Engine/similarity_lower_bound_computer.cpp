@@ -22,7 +22,7 @@ PairLowerBoundOptimal SimilarityLowerBoundComputer::ComputeLowerBound(BinaryData
 	PairLowerBoundOptimal result(0, false);
 	for (ArchiveEntry& entry : archive_[depth])
 	{
-		int entry_lower_bound = cache->RetrieveLowerBound(entry.data, entry.branch, depth, size);
+		double entry_lower_bound = cache->RetrieveLowerBound(entry.data, entry.branch, depth, size);
 		if (entry.data.Size() > data.Size() && entry.data.Size() - data.Size() >= entry_lower_bound) { continue; }
 
 		DifferenceMetrics metrics = BinaryDataDifferenceComputer::ComputeDifferenceMetrics(entry.data, data);

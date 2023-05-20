@@ -64,8 +64,8 @@ public:
 	void TransferAssignmentsForEquivalentBranches(const BinaryDataInternal&, const Branch& branch_source, const BinaryDataInternal&, const Branch& branch_destination);//this updates branch_destination with all solutions from branch_source. Should only be done if the branches are equivalent.
 
 	//related to storing/retrieving lower bounds
-	void UpdateLowerBound(BinaryDataInternal&, const Branch& branch, int lower_bound, int depth, int num_nodes);
-	int RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes);
+	void UpdateLowerBound(BinaryDataInternal&, const Branch& branch, double lower_bound, int depth, int num_nodes);
+	double RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes);
 
 	//misc
 	int NumEntries() const;

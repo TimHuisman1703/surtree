@@ -11,15 +11,15 @@ namespace MurTree
 	struct InternalNodeDescription
 	{
 		int feature;
-		int label;
-		int misclassification_score;
+		double theta;
+		double error;
 		int num_nodes_left;
 		int num_nodes_right;
 
-		InternalNodeDescription(int feature, int label, int accuracy, int num_nodes_left, int num_nodes_right);
+		InternalNodeDescription(int feature, double theta, double error, int num_nodes_left, int num_nodes_right);
 
-		int Misclassifications() const;
-		int SparseObjective(int sparse_coefficient) const;
+		double Error() const;
+		double SparseObjective(double sparse_coefficient) const;
 		int NumNodes() const;
 		bool IsInfeasible() const;
 		bool IsFeasible() const;

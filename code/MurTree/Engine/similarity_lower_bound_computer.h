@@ -12,8 +12,8 @@ namespace MurTree
 {
 struct PairLowerBoundOptimal
 {
-	PairLowerBoundOptimal(int lb, bool opt) :lower_bound(lb), optimal(opt) {}
-	int lower_bound;
+	PairLowerBoundOptimal(double lb, bool opt) :lower_bound(lb), optimal(opt) {}
+	double lower_bound;
 	bool optimal;
 };
 

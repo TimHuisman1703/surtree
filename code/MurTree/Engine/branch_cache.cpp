@@ -75,13 +75,13 @@ void BranchCache::StoreOptimalBranchAssignment(BinaryDataInternal &data, const B
 			if (optimal_node.NumNodes() <= entry.GetNodeBudget() && entry.GetNodeBudget() <= num_nodes
 				&& optimal_node_depth <= entry.GetDepthBudget() && entry.GetDepthBudget() <= depth)
 			{
-				if (!(!entry.IsOptimal() || entry.GetOptimalValue() == optimal_node.Misclassifications()))
+				if (!(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6))
 				{
-					std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.misclassification_score << "\n";
+					std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.error << "\n";
 					std::cout << "\tnum nodes: " << num_nodes << "\n";
 					std::cout << entry.GetNodeBudget() << ", " << entry.GetOptimalValue() << "\n";
 				}
-				runtime_assert(!entry.IsOptimal() || entry.GetOptimalValue() == optimal_node.Misclassifications());
+				runtime_assert(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6);
 
 				budget_seen[entry.GetNodeBudget()][entry.GetDepthBudget()] = true;
 				if (!entry.IsOptimal()) { entry.SetOptimalAssignment(optimal_node); }
@@ -110,7 +110,7 @@ void BranchCache::StoreOptimalBranchAssignment(BinaryDataInternal &data, const B
 	//or I need to rethink this caching to include exactly num_nodes -> it might be strange that we ask for five nodes and get UNSAT, while with four nodes it gives a solution
 	//I am guessing that the cache must store exactly num_nodes, and then outside the loop when we find that the best sol has less node, we need to insert that in the cache?
 	//and mark all solutions with more nodes as infeasible, i.e., some high cost
-	runtime_assert(RetrieveOptimalAssignment(data, branch, depth, num_nodes).Misclassifications() == optimal_node.Misclassifications());
+	runtime_assert(RetrieveOptimalAssignment(data, branch, depth, num_nodes).Error() == optimal_node.Error());
 }
 
 void BranchCache::TransferAssignmentsForEquivalentBranches(const BinaryDataInternal&, const Branch& branch_source, const BinaryDataInternal&, const Branch& branch_destination)
@@ -172,7 +172,7 @@ InternalNodeDescription BranchCache::RetrieveOptimalAssignment(BinaryDataInterna
     return InternalNodeDescription::CreateInfeasibleNodeDescription();
 }
 
-void BranchCache::UpdateLowerBound(BinaryDataInternal&, const Branch& branch, int lower_bound, int depth, int num_nodes)
+void BranchCache::UpdateLowerBound(BinaryDataInternal&, const Branch& branch, double lower_bound, int depth, int num_nodes)
 {
 	runtime_assert(depth <= num_nodes);
 	
@@ -212,7 +212,7 @@ void BranchCache::UpdateLowerBound(BinaryDataInternal&, const Branch& branch, in
 	}
 }
 
-int BranchCache::RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes)
+double BranchCache::RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes)
 {
 	runtime_assert(depth <= num_nodes);
 
@@ -225,12 +225,12 @@ int BranchCache::RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, i
 
 	//compute the misclassification lower bound by considering that branches with more node/depth budgets 
 	//  can only have less or equal misclassification than when using the prescribed number of nodes and depth
-	int best_lower_bound = 0;
+	double best_lower_bound = 0;
 	for (CacheEntry& entry : iter->second)
 	{
 		if (num_nodes <= entry.GetNodeBudget() && depth <= entry.GetDepthBudget())
 		{
-			int local_lower_bound = entry.GetLowerBound();
+			double local_lower_bound = entry.GetLowerBound();
 			best_lower_bound = std::max(best_lower_bound, local_lower_bound);
 		}
 	}

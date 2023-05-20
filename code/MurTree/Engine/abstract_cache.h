@@ -24,7 +24,7 @@ struct CacheEntry
 
 	CacheEntry(int depth, int num_nodes, InternalNodeDescription optimal_node) :
 		optimal_assignment(optimal_node),
-		lower_bound(optimal_node.Misclassifications()),
+		lower_bound(optimal_node.Error()),
 		depth(depth),
 		num_nodes(num_nodes)
 	{
@@ -33,20 +33,20 @@ struct CacheEntry
 
 	InternalNodeDescription GetOptimalSolution() const { runtime_assert(IsOptimal()); return optimal_assignment; }
 
-	int GetOptimalValue() const { runtime_assert(IsOptimal()); return optimal_assignment.Misclassifications(); }
+	double GetOptimalValue() const { runtime_assert(IsOptimal()); return optimal_assignment.Error(); }
 
-	int GetLowerBound() const { runtime_assert(lower_bound >= 0 && lower_bound < INT32_MAX); return lower_bound; }
+	double GetLowerBound() const { runtime_assert(lower_bound >= 0 && lower_bound < DBL_MAX); return lower_bound; }
 	
 	void SetOptimalAssignment(const InternalNodeDescription& optimal_node)
 	{
 		runtime_assert(optimal_assignment.IsInfeasible());
 		optimal_assignment = optimal_node;
-		lower_bound = optimal_node.Misclassifications();
+		lower_bound = optimal_node.Error();
 	}
 
-	void UpdateLowerBound(int lb)
+	void UpdateLowerBound(double lb)
 	{
-		runtime_assert(lb < INT32_MAX&& lb >= 0 && (lb <= lower_bound && IsOptimal() || !IsOptimal()));
+		runtime_assert(lb < DBL_MAX && lb >= 0 && (lb <= lower_bound && IsOptimal() || !IsOptimal()));
 		lower_bound = std::max(lower_bound, lb);
 	}
 
@@ -58,7 +58,7 @@ struct CacheEntry
 
 private:
 	InternalNodeDescription optimal_assignment;
-	int lower_bound;
+	double lower_bound;
 	int depth;
 	int num_nodes;
 };
@@ -79,8 +79,8 @@ public:
 	virtual int RetrieveLowerBound(std::vector<CacheEntry>& entries, int depth, int num_nodes) = 0;*/
 
 	//related to storing/retrieving lower bounds
-	virtual void UpdateLowerBound(BinaryDataInternal&, const Branch& branch, int lower_bound, int depth, int num_nodes) = 0;
-	virtual int RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes) = 0;
+	virtual void UpdateLowerBound(BinaryDataInternal&, const Branch& branch, double lower_bound, int depth, int num_nodes) = 0;
+	virtual double RetrieveLowerBound(BinaryDataInternal&, const Branch& branch, int depth, int num_nodes) = 0;
 
 	//misc
 	virtual int NumEntries() const = 0;

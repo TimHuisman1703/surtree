@@ -8,14 +8,14 @@
 struct ChildrenInformation
 {
 	/*ChildrenInformation() {
-		left_child_feature = right_child_feature = left_child_penalty = right_child_penalty = INT32_MAX;
+		left_child_feature = right_child_feature = left_child_penalty = right_child_penalty = DBL_MAX;
 	}*/
 
 	/*ChildrenInformation() { Initialise(); }
 
 	void Initialise()
 	{
-		left_child_feature = right_child_feature = left_child_penalty = right_child_penalty = INT32_MAX;
+		left_child_feature = right_child_feature = left_child_penalty = right_child_penalty = DBL_MAX;
 	}
 
 	void UpdateBestLeftChild(int left_child_feature, int penalty)
@@ -37,5 +37,5 @@ struct ChildrenInformation
 	}*/
 
 	int left_child_feature, right_child_feature;
-	int left_child_penalty, right_child_penalty;
+	double left_child_penalty, right_child_penalty;
 };

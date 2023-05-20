@@ -11,9 +11,9 @@
 
 namespace MurTree
 {
-std::vector<std::vector<FeatureVectorBinary> > FileReader::ReadDataDL(std::string filename, int duplicate_instances_factor)
+std::vector<FeatureVectorBinary> FileReader::ReadDataDL(std::string filename, int duplicate_instances_factor)
 {
-	std::vector<std::vector<FeatureVectorBinary> > feature_vectors;
+	std::vector<FeatureVectorBinary> feature_vectors;
 	
 	std::ifstream file(filename.c_str());
 
@@ -24,13 +24,21 @@ std::vector<std::vector<FeatureVectorBinary> > FileReader::ReadDataDL(std::strin
 	int num_features = INT32_MAX;
 	while (std::getline(file, line))
 	{
-		runtime_assert(num_features == INT32_MAX || num_features == (line.length() - 1) / 2);
-		if (num_features == INT32_MAX) { num_features = (line.length() - 1) / 2; }
+		int spaces = 0;
+		for (int i = 0; i < line.length(); i++) {
+			if (line[i] == 0x20) {
+				spaces++;
+			}
+		}
+		runtime_assert(num_features == INT32_MAX || num_features == spaces - 1);
+		if (num_features == INT32_MAX) { num_features = spaces - 1; }
 
 		std::istringstream iss(line);
 		//the first value in the line is the label, followed by 0-1 features
-		int label;
-		iss >> label;
+		double time;
+		int event;
+		iss >> time;
+		iss >> event;
 		std::vector<bool> v;
 		for (uint32_t i = 0; i < num_features; i++)
 		{
@@ -40,19 +48,18 @@ std::vector<std::vector<FeatureVectorBinary> > FileReader::ReadDataDL(std::strin
 			v.push_back(temp);
 		}
 
-		if (feature_vectors.size() <= label) { feature_vectors.resize(label+1); } //adjust the vector to take into account the new label (recall that labels are expected to be from 0..num_labels-1
 		for (int i = 0; i < duplicate_instances_factor; i++)
 		{
-			feature_vectors[label].push_back(FeatureVectorBinary(v, id));
+			feature_vectors.push_back(FeatureVectorBinary(v, time, event, id));
 			id++;			
-		}		
+		}
 	}
 	return feature_vectors;
 }
 
 std::vector<SplitData> FileReader::ReadSplits(std::string data_file, std::string splits_location_prefix)
 {//splits_location_prefix' + '_train[i].txt'
-	std::vector<std::vector<FeatureVectorBinary> > raw_data = ReadDataDL(data_file);
+	std::vector<FeatureVectorBinary> raw_data = ReadDataDL(data_file);
 	std::vector<SplitData> splits;
 	for (int k = 0; k < 5; k++)
 	{
@@ -66,34 +73,27 @@ std::vector<SplitData> FileReader::ReadSplits(std::string data_file, std::string
 	return splits;
 }
 
-std::vector<std::vector<FeatureVectorBinary> > FileReader::ReadSplits_ReadPartitionFile(std::vector<std::vector<FeatureVectorBinary> >& instances, std::string file)
+std::vector<FeatureVectorBinary> FileReader::ReadSplits_ReadPartitionFile(std::vector<FeatureVectorBinary>& instances, std::string file)
 {
 	std::ifstream input(file.c_str());
-	std::vector<std::vector<FeatureVectorBinary> > partition(instances.size());
+	std::vector<FeatureVectorBinary> partition(instances.size());
 
-	int num_instances = 0;
-	for (auto& v : instances) { num_instances += v.size(); }
+	int num_instances = instances.size();
 	std::vector<int> labels(num_instances, -1);
 	std::vector<int> indicies(num_instances, -1);
-	for (int i = 0; i < instances.size(); i++)
+
+	for (int j = 0; j < instances.size(); j++)
 	{
-		auto& v = instances[i];
-		for (int j = 0; j < v.size(); j++)
-		{
-			auto& fv = v[j];
-			runtime_assert(labels[fv.GetID()] == -1);
-			labels[fv.GetID()] = i;
-			indicies[fv.GetID()] = j;
-		}
+		auto& fv = instances[j];
+		indicies[fv.GetID()] = j;
 	}
 
 	runtime_assert(input);
 	int index;
 	while (input >> index)
 	{
-		int label = labels[index];
 		int i = indicies[index];
-		partition[label].push_back(instances[label][i]);
+		partition.push_back(instances[i]);
 	}
 	return partition;
 }

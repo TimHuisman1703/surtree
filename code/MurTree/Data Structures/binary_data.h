@@ -15,20 +15,19 @@ namespace MurTree
 class BinaryDataInternal
 {
 public:
-	BinaryDataInternal(int num_labels, int num_features);
+	BinaryDataInternal(int num_features);
 	
-	int NumLabels() const;
 	int NumFeatures() const;
-	int NumInstancesForLabel(int label) const;
+	int NumInstances() const;
 	int Size() const;
 	bool IsEmpty() const;
 
-	const FeatureVectorBinary* GetInstance(int label, int index) const;
-	const std::vector<FeatureVectorBinary*>& GetInstancesForLabel(int label) const;
-	FeatureVectorBinary* GetInstance(int label, int index);
+	const FeatureVectorBinary* GetInstance(int index) const;
+	const std::vector<FeatureVectorBinary*>& GetInstances() const;
+	FeatureVectorBinary* GetInstance(int index);
 
 	void Clear();
-	void AddFeatureVector(FeatureVectorBinary* fv, int label);
+	void AddFeatureVector(FeatureVectorBinary* fv);
 
 	int MaxFeatureVectorID() const;	
 	double ComputeSparsity() const;
@@ -50,6 +49,6 @@ private:
 	Branch closure_;
 
 	int num_features_;
-	std::vector<std::vector<FeatureVectorBinary*> > instances;//the learning data is partitioned based on the labels, i.e., instances[label] is the vector of feature vectors with label 'label'
+	std::vector<FeatureVectorBinary*> instances_;
 };
 }

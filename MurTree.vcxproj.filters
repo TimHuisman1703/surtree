@@ -20,14 +20,11 @@
     <ClCompile Include="code\MurTree\Data Structures\key_value_heap.cpp">
       <Filter>Data Structures</Filter>
     </ClCompile>
-    <ClCompile Include="code\MurTree\Data Structures\symmetric_matrix_counter.cpp">
+    <ClCompile Include="code\MurTree\Data Structures\symmetric_matrix_accumulator.cpp">
       <Filter>Data Structures</Filter>
     </ClCompile>
     <ClCompile Include="code\MurTree\Data Structures\symmetric_matrix_positive_negative_counter_2d.cpp">
       <Filter>Data Structures</Filter>
-    </ClCompile>
-    <ClCompile Include="code\MurTree\Engine\binary_data_difference_computer.cpp">
-      <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="code\MurTree\Engine\branch_cache.cpp">
       <Filter>Engine</Filter>
@@ -50,16 +47,10 @@
     <ClCompile Include="code\MurTree\Engine\solver.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="code\MurTree\Engine\specialised_binary_classification_decision_tree_solver.cpp">
+    <ClCompile Include="code\MurTree\Engine\specialised_survival_analysis_decision_tree_solver.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="code\MurTree\Engine\specialised_branch_misclassification_computer.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="code\MurTree\Engine\specialised_general_branch_misclassification_computer.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="code\MurTree\Engine\specialised_general_classification_decision_tree_solver.cpp">
+    <ClCompile Include="code\MurTree\Engine\specialised_branch_survival_analysis_computer.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="code\MurTree\Utilities\file_reader.cpp">
@@ -68,6 +59,11 @@
     <ClCompile Include="code\MurTree\Utilities\parameter_handler.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="code\MurTree\Engine\binary_data_difference_computer.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="code\MurTree\Data Structures\symmetric_matrix_counter.cpp" />
+    <ClCompile Include="code\MurTree\Engine\nelson_aalen_estimator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Data Structures">
@@ -114,16 +110,13 @@
     <ClInclude Include="code\MurTree\Data Structures\split_binary_data.h">
       <Filter>Data Structures</Filter>
     </ClInclude>
-    <ClInclude Include="code\MurTree\Data Structures\symmetric_matrix_counter.h">
+    <ClInclude Include="code\MurTree\Data Structures\symmetric_matrix_accumulator.h">
       <Filter>Data Structures</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Data Structures\symmetric_matrix_positive_negative_counter_2d.h">
       <Filter>Data Structures</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Engine\abstract_cache.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="code\MurTree\Engine\binary_data_difference_computer.h">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Engine\branch_cache.h">
@@ -136,9 +129,6 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Engine\feature_selector_abstract.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="code\MurTree\Engine\feature_selector_gini.h">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Engine\feature_selector_in_order.h">
@@ -156,19 +146,13 @@
     <ClInclude Include="code\MurTree\Engine\solver.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="code\MurTree\Engine\specialised_binary_classification_decision_tree_solver.h">
+    <ClInclude Include="code\MurTree\Engine\specialised_survival_analysis_decision_tree_solver.h">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="code\MurTree\Engine\specialised_branch_misclassification_computer.h">
+    <ClInclude Include="code\MurTree\Engine\specialised_branch_survival_analysis_computer.h">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Engine\specialised_decision_tree_solver_abstract.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="code\MurTree\Engine\specialised_general_branch_misclassification_computer.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="code\MurTree\Engine\specialised_general_classification_decision_tree_solver.h">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="code\MurTree\Utilities\file_reader.h">
@@ -192,5 +176,10 @@
     <ClInclude Include="code\MurTree\Utilities\stopwatch.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="code\MurTree\Engine\binary_data_difference_computer.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="code\MurTree\Data Structures\symmetric_matrix_counter.h" />
+    <ClInclude Include="code\MurTree\Engine\nelson_aalen_estimator.h" />
   </ItemGroup>
 </Project>

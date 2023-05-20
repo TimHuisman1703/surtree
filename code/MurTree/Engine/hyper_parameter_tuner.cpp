@@ -29,10 +29,10 @@ HyperParameterTuningOutput HyperParameterTuner::Solve(HyperParameterTuningInput&
 	runtime_parameters.SetIntegerParameter("max-depth", 0);
 	runtime_parameters.SetIntegerParameter("max-num-nodes", 0);
 
-	int num_labels = splits[0].training_data.size();
+	int num_labels = (int)splits[0].training_data.size();
 	int best_depth = -1;
 	int best_num_nodes = -1;
-	int best_testing_misclassification = INT32_MAX;
+	double best_testing_error = DBL_MAX;
 	int min_depth = tuning_parameters.single_parameter_set_tuning ? tuning_parameters.max_depth : 0;
 	for (int depth = min_depth; depth <= tuning_parameters.max_depth; depth++)
 	{
@@ -45,32 +45,28 @@ HyperParameterTuningOutput HyperParameterTuner::Solve(HyperParameterTuningInput&
 			runtime_parameters.SetIntegerParameter("max-depth", depth);
 			runtime_parameters.SetIntegerParameter("max-num-nodes", num_nodes);
 
-			int current_testing_misclassifications = 0;
+			double current_testing_error = 0;
 			for (int i = 0; i < splits.size(); i++)
 			{
 				SplitData& split = splits[i];
 
 				SolverResult result = solvers[i]->Solve(runtime_parameters);
-				int train_misclass = result.decision_tree_->ComputeMisclassificationScore(split.training_data);
-				int test_misclass = result.decision_tree_->ComputeMisclassificationScore(split.testing_data);
-				current_testing_misclassifications += test_misclass;
+				double train_error = result.decision_tree_->ComputeError(split.training_data);
+				double test_error = result.decision_tree_->ComputeError(split.testing_data);
+				current_testing_error += test_error;
 
-				int train_size = 0, test_size = 0;
-				for (int label = 0; label < num_labels; label++)
-				{
-					train_size += split.training_data[label].size();
-					test_size += split.testing_data[label].size();
-				}
+				int train_size = (int)split.training_data.size();
+				int test_size = (int)split.testing_data.size();
 				
-				double train_accuracy = double(train_size - train_misclass)/ train_size;
-				double test_accuracy = double(test_size - test_misclass) / test_size;
+				double train_accuracy = double(train_size - train_error)/ train_size;
+				double test_accuracy = double(test_size - test_error) / test_size;
 
 				std::cout << "\t\t(" << train_accuracy << ", " << test_accuracy << ")\n";
 			}
 
-			if (best_testing_misclassification > current_testing_misclassifications)
+			if (best_testing_error > current_testing_error)
 			{
-				best_testing_misclassification = current_testing_misclassifications;
+				best_testing_error = current_testing_error;
 				best_depth = depth;
 				best_num_nodes = num_nodes;
 			}
@@ -84,7 +80,7 @@ HyperParameterTuningOutput HyperParameterTuner::Solve(HyperParameterTuningInput&
 
 	std::cout << "Chosen (depth, size): " << "(" << best_depth << ", " << best_num_nodes << ")\n";
 	Solver final_solver(solver_parameters);
-		
+	
 	HyperParameterTuningOutput output;
 	output.train_accuracy = 0;
 	output.test_accuracy = 0;
@@ -96,18 +92,14 @@ HyperParameterTuningOutput HyperParameterTuner::Solve(HyperParameterTuningInput&
 
 		SplitData& split = splits[i];
 		SolverResult r = solvers[i]->Solve(runtime_parameters);
-		int train_misclassifications = r.decision_tree_->ComputeMisclassificationScore(split.training_data);
-		int test_misclassifications = r.decision_tree_->ComputeMisclassificationScore(split.testing_data);
+		double train_error = r.decision_tree_->ComputeError(split.training_data);
+		double test_error = r.decision_tree_->ComputeError(split.testing_data);
 
-		int train_size = 0, test_size = 0;
-		for (int label = 0; label < num_labels; label++)
-		{
-			train_size += split.training_data[label].size();
-			test_size += split.testing_data[label].size();
-		}
+		int train_size = (int)split.training_data.size();
+		int test_size = (int)split.testing_data.size();
 
-		output.train_accuracy += double(train_size - train_misclassifications) / train_size;
-		output.test_accuracy += double(test_size - test_misclassifications) / test_size;
+		output.train_accuracy += double(train_size - train_error) / train_size;
+		output.test_accuracy += double(test_size - test_error) / test_size;
 	}
 	output.train_accuracy /= splits.size();
 	output.test_accuracy /= splits.size();

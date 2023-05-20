@@ -8,37 +8,26 @@
 
 namespace MurTree
 {
-BinaryDataInternal::BinaryDataInternal(int num_labels, int num_features):
+BinaryDataInternal::BinaryDataInternal(int num_features):
 	num_features_(num_features),
-	instances(num_labels),
 	hash_value_(-1),
 	is_closure_set_(false)
 {
 }
 
-int BinaryDataInternal::NumLabels() const
+const FeatureVectorBinary* BinaryDataInternal::GetInstance(int index) const
 {
-	return int(instances.size()); //recall that [i] are the instances of label 'i', and size would be the number of labels
+	return instances_[index];
 }
 
-int BinaryDataInternal::NumInstancesForLabel(int label) const
+const std::vector<FeatureVectorBinary*>& BinaryDataInternal::GetInstances() const
 {
-	return int(instances[label].size());
+	return instances_;
 }
 
-const FeatureVectorBinary* BinaryDataInternal::GetInstance(int label, int index) const
+FeatureVectorBinary* BinaryDataInternal::GetInstance(int index)
 {
-	return instances[label][index];
-}
-
-const std::vector<FeatureVectorBinary*>& BinaryDataInternal::GetInstancesForLabel(int label) const
-{
-	return instances[label];
-}
-
-FeatureVectorBinary* BinaryDataInternal::GetInstance(int label, int index)
-{
-	return instances[label][index];
+	return instances_[index];
 }
 
 int BinaryDataInternal::NumFeatures() const
@@ -46,28 +35,30 @@ int BinaryDataInternal::NumFeatures() const
 	return num_features_;
 }
 
+int BinaryDataInternal::NumInstances() const
+{
+	return (int)instances_.size();
+}
+
 int BinaryDataInternal::MaxFeatureVectorID() const
 {
 	int max_id = 0;
-	for (const std::vector<FeatureVectorBinary*>& i : instances)
+	for (const FeatureVectorBinary* fv : instances_)
 	{
-		for (FeatureVectorBinary *fv : i)
-		{
-			max_id = std::max(max_id, int(fv->GetID()));
-		}
+		max_id = std::max(max_id, int(fv->GetID()));
 	}
 	return max_id + 1;
 }
 
-void BinaryDataInternal::AddFeatureVector(FeatureVectorBinary* fv, int label)
+void BinaryDataInternal::AddFeatureVector(FeatureVectorBinary* fv)
 {
-	assert(num_features_ == fv->NumTotalFeatures() && label < instances.size());
-	instances[label].push_back(fv);
+	assert(num_features_ == fv->NumTotalFeatures());
+	instances_.push_back(fv);
 }
 
 int BinaryDataInternal::Size() const
 {
-	return std::accumulate(instances.begin(), instances.end(), 0, [](int sum, const std::vector<FeatureVectorBinary*>& v)->int { return sum + int(v.size()); });
+	return int(instances_.size());
 }
 
 bool BinaryDataInternal::IsEmpty() const
@@ -77,7 +68,7 @@ bool BinaryDataInternal::IsEmpty() const
 
 void BinaryDataInternal::Clear()
 {
-	for (auto& feature_vectors : instances) { feature_vectors.clear(); }
+	instances_.clear();
 	hash_value_ = -1;
 	is_closure_set_ = false;
 }
@@ -86,12 +77,9 @@ double BinaryDataInternal::ComputeSparsity() const
 {
 	if (Size() == 0) { return 0.0; }
 	double sum_sparsity = 0.0;
-	for (const std::vector<FeatureVectorBinary*>& i : instances)
+	for (const FeatureVectorBinary* fv : instances_)
 	{
-		for (const FeatureVectorBinary* fv : i)
-		{
-			sum_sparsity += fv->Sparsity();
-		}
+		sum_sparsity += fv->Sparsity();
 	}
 	return sum_sparsity / (Size());
 }
@@ -100,11 +88,7 @@ void BinaryDataInternal::PrintStats()
 {
 	std::cout << "Num features: " << NumFeatures() << "\n";
 	std::cout << "Size: " << Size() << "\n";
-	for (int label = 0; label < int(instances.size()); label++)
-	{
-		std::cout << "\tLabel " << label << ": " << instances[label].size() << "\n";
-	}
-	std::cout << "\tSparsity: " << ComputeSparsity() << "\n";
+	std::cout << "Sparsity: " << ComputeSparsity() << "\n";
 }
 
 bool BinaryDataInternal::IsHashSet() const
@@ -115,7 +99,7 @@ bool BinaryDataInternal::IsHashSet() const
 int BinaryDataInternal::GetHash() const
 {
 	runtime_assert(hash_value_ != -1); 
-	return hash_value_;
+	return (int)hash_value_;
 }
 
 void BinaryDataInternal::SetHash(int new_hash)
@@ -145,14 +129,10 @@ std::ostream& operator<<(std::ostream& os, BinaryDataInternal& data)
 {
 	os << "Number of instances: " << data.Size();
 
-	for (int label = 0; label < data.NumLabels(); label++)
+	int counter_instances = 0;
+	for (FeatureVectorBinary* fv : data.GetInstances())
 	{
-		int counter_instances = 0;
-		os << "\nNumber of instances with label " << label << ": " << data.NumInstancesForLabel(label);
-		for (FeatureVectorBinary* fv : data.GetInstancesForLabel(label))
-		{
-			os << "\n\t" << counter_instances++ << ":\t" << (*fv);
-		}
+		os << "\n\t" << counter_instances++ << ":\t" << (*fv);
 	}
 	return os;
 }
