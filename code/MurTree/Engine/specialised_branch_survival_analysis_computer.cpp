@@ -5,8 +5,6 @@
 #include "specialised_branch_survival_analysis_computer.h"
 #include "../Utilities/runtime_assert.h"
 
-#define AVERAGE_LOGLIKELIHOOD
-
 namespace MurTree
 {
 SpecialisedBranchSurvivalAnalysisComputer::SpecialisedBranchSurvivalAnalysisComputer(int num_features, int num_total_data_points, bool using_incremental_updates) :
@@ -120,7 +118,7 @@ double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchZeroZero(int f1, 
 double SpecialisedBranchSurvivalAnalysisComputer::CalculateError(double hazard_sum, int event_sum, double negative_log_hazard_sum, int instances_amount)
 {
 	if (instances_amount == 0)
-		return 1e9;
+		return 0;
 	
 	double theta = 0.0;
 	if (hazard_sum > 1e-9) {
@@ -132,10 +130,6 @@ double SpecialisedBranchSurvivalAnalysisComputer::CalculateError(double hazard_s
 		error += negative_log_hazard_sum
 			- event_sum * (log(theta) + 1);
 	}
-
-#ifdef AVERAGE_LOGLIKELIHOOD
-	error = error / instances_amount;
-#endif
 
 	return std::max(error, 0.0);
 }

@@ -296,7 +296,6 @@ int main(int argc, char* argv[])
 		std::string file_location;
 
 		file_location = "datasetsSA\\LeukSurv.txt";
-		//file_location = "datasetsSA\\ova.txt";
 
 		// Tag for Ctrl+F-ing: SETTINGS
 
@@ -307,13 +306,13 @@ int main(int argc, char* argv[])
 		//hyper_parameter_stats_file = "datasetsTesting\\MurTreeHyperStats\\anneal_new.txt";
 		single_parameter_set_tuning = false;
 		parameters.SetIntegerParameter("duplicate-factor", 1);
-		parameters.SetStringParameter("cache-type", "branch");// "closure";// "dataset";
+		parameters.SetStringParameter("cache-type", "dataset");// "closure";// "branch";
 		parameters.SetBooleanParameter("all-trees", false);
-		parameters.SetIntegerParameter("max-depth", 3);
-		parameters.SetIntegerParameter("min-num-nodes", 0);
-		parameters.SetIntegerParameter("max-num-nodes", 7);
+		parameters.SetIntegerParameter("max-depth", 5);
+		parameters.SetIntegerParameter("min-num-nodes", 31);
+		parameters.SetIntegerParameter("max-num-nodes", 31);
 		parameters.SetFloatParameter("upper-bound", DBL_MAX);//INT32_MAX
-		parameters.SetFloatParameter("sparse-coefficient", 0.00);
+		parameters.SetFloatParameter("sparse-coefficient", 0.0);
 		parameters.SetBooleanParameter("similarity-lower-bound", true);
 		parameters.SetStringParameter("node-selection", "dynamic");
 		parameters.SetStringParameter("feature-ordering", "in-order");

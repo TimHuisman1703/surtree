@@ -48,8 +48,7 @@ bool SpecialisedSurvivalAnalaysisDecisionTreeSolver::Initialise(BinaryDataIntern
 		best_children_error_info_[i].right_child_penalty = DBL_MAX;
 	}
 	
-	// TODO-SA: Add back leaf error
-	results_ = SpecialisedDecisionTreeSolverResult(1e9 /*leaf_error*/);
+	results_ = SpecialisedDecisionTreeSolverResult(Solver::LeafError(data));
 	time_initi += double(clock() - clock_start) / CLOCKS_PER_SEC;
 	return true;
 }

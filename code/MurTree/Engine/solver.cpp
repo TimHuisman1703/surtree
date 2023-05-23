@@ -14,8 +14,6 @@
 #include "../Utilities/file_reader.h"
 #include "../Data Structures/child_subtree_info.h"
 
-#define AVERAGE_LOGLIKELIHOOD
-
 namespace MurTree
 {
 Solver::Solver(ParameterHandler& parameters):
@@ -157,14 +155,14 @@ SolverResult Solver::Solve(ParameterHandler& parameters)
 		//std::cout << "new Time inicialising: " << (specialised_solver1_->time_initi + specialised_solver2_->time_initi) << "\n";//specialised_solver_->time_initi << "\n";
 	}
 
+	DecisionNode* root_node = DecisionNode::CreateLabelNode(1.0);
+	double base_error = result.is_proven_optimal ? root_node->ComputeError(*binary_data_) : -1;
 	double recomputed_error = result.is_proven_optimal ? result.decision_tree_->ComputeError(*binary_data_) : -1;
-
-	// TODO-SA: remove
-	//recomputed_error = result.error;
 
 	if (verbose_)
 	{
 		std::cout << "RECOMPUTED ERROR = " << recomputed_error << "\n";
+		std::cout << "RATIO SCORE = " << std::max(0.0, 1.0 - recomputed_error / base_error) << "\n";
 	}
 	if (std::abs(result.error - recomputed_error) < 1e-6)
 	{
@@ -439,8 +437,8 @@ InternalNodeDescription Solver::SolveSubtreeGeneralCase(BinaryDataInternal& data
 				InternalNodeDescription right_child = (first_child.branch == right_branch ? first_child_solution : second_child_solution);
 				InternalNodeDescription current_node = CombineLeftAndRightChildren(splitting_feature, left_child, right_child);
 				//this condition always holds, right?
-				runtime_assert(best_node.IsInfeasible() || current_node.Error() < best_node.Error());
-				if (best_node.IsInfeasible() || current_node.Error() < best_node.Error())
+				runtime_assert(best_node.IsInfeasible() || current_node.Error() <= best_node.Error());
+				if (best_node.IsInfeasible() || current_node.Error() <= best_node.Error())
 				{
 					best_node = current_node;
 					if (best_node.Error() == branch_lower_bound) { break; }
@@ -612,19 +610,15 @@ double Solver::LeafError(BinaryDataInternal& data)
 	double error = 0;
 	double theta = LeafTheta(data);
 
-	for (FeatureVectorBinary fv : feature_vectors_)
+	for (FeatureVectorBinary* fv : data.GetInstances())
 	{
-		double hazard = fv.GetHazard();
+		double hazard = fv->GetHazard();
 
 		error += theta * hazard;
-		if (fv.GetEvent()) {
+		if (fv->GetEvent()) {
 			error -= log(hazard) + log(theta) + 1;
 		}
 	}
-
-#ifdef AVERAGE_LOGLIKELIHOOD
-	error = error / data.GetInstances().size();
-#endif
 
 	return std::max(error, 0.0);
 }

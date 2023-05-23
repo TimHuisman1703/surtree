@@ -3,8 +3,6 @@
 
 #pragma once
 
-#define AVERAGE_LOGLIKELIHOOD
-
 #include "../Utilities/runtime_assert.h"
 #include "binary_data.h"
 
@@ -61,10 +59,6 @@ struct DecisionNode
 			}
 		}
 
-#ifdef AVERAGE_LOGLIKELIHOOD
-		error = error / data.GetInstances().size();
-#endif
-
 		return std::max(error, 0.0);
 	}
 
@@ -81,10 +75,6 @@ struct DecisionNode
 				error -= log(hazard) + log(theta) + 1;
 			}
 		}
-
-#ifdef AVERAGE_LOGLIKELIHOOD
-		error = error / instances.size();
-#endif
 
 		return std::max(error, 0.0);
 	}

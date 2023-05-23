@@ -44,8 +44,8 @@ public:
 	InternalNodeDescription CombineLeftAndRightChildren(int feature, InternalNodeDescription& left_child, InternalNodeDescription& right_child);
 	ChildSubtreeOrdering GetSortedChildren(ChildSubtreeInfo& left_child, ChildSubtreeInfo& right_child);
 
-	double LeafTheta(BinaryDataInternal& data);
-	double LeafError(BinaryDataInternal& data);
+	static double LeafTheta(BinaryDataInternal& data);
+	static double LeafError(BinaryDataInternal& data);
 
 	bool IsTerminalNode(int depth, int num_nodes);
 	bool IsNodeBetter(InternalNodeDescription node1, InternalNodeDescription node2); //returns true if node1 is better than node2. Assumes both nodes are feasible.
