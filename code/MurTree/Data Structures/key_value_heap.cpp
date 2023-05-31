@@ -109,7 +109,7 @@ bool KeyValueHeap::Empty() const
 int KeyValueHeap::MaxSize() const
 {
 	assert(AreDataStructuresOfSameSize());
-	return values_.size();
+	return (int)values_.size();
 }
 
 void KeyValueHeap::SwapPositions(int i, int j)
@@ -244,7 +244,7 @@ bool KeyValueHeap::IsMaxValue(double reference) const
 
 bool KeyValueHeap::AreDataStructuresOfSameSize() const
 {
-	int number_of_entries = values_.size();
+	int number_of_entries = (int)values_.size();
 	assert(map_key_to_position_.size() == number_of_entries);
 	assert(map_position_to_key_.size() == number_of_entries);
 	assert(end_position_ <= number_of_entries);

@@ -21,12 +21,12 @@ std::vector<FeatureVectorBinary> FileReader::ReadDataDL(std::string filename, in
 
 	std::string line;
 	int id = 0;
-	int num_features = INT32_MAX;
+	uint32_t num_features = INT32_MAX;
 	while (std::getline(file, line))
 	{
 		int spaces = 0;
 		for (int i = 0; i < line.length(); i++) {
-			if (line[i] == 0x20) {
+			if (line[i] == ' ') {
 				spaces++;
 			}
 		}
@@ -78,7 +78,7 @@ std::vector<FeatureVectorBinary> FileReader::ReadSplits_ReadPartitionFile(std::v
 	std::ifstream input(file.c_str());
 	std::vector<FeatureVectorBinary> partition(instances.size());
 
-	int num_instances = instances.size();
+	int num_instances = (int)instances.size();
 	std::vector<int> labels(num_instances, -1);
 	std::vector<int> indicies(num_instances, -1);
 

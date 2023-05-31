@@ -39,7 +39,7 @@ bool InternalNodeDescription::IsInfeasible() const
 
 bool InternalNodeDescription::IsFeasible() const 
 {
-    return error != DBL_MAX;
+    return error < DBL_MAX / 2;
 }
 
 InternalNodeDescription InternalNodeDescription::CreateInfeasibleNodeDescription()

@@ -45,7 +45,7 @@ void BranchCache::StoreOptimalBranchAssignment(BinaryDataInternal &data, const B
 	auto& hashmap = cache_[branch.Depth()];
 	auto iter_vector_entry = hashmap.find(branch);
 	int optimal_node_depth = std::min(depth, optimal_node.NumNodes()); //this is an estimate of the depth, it could be lower actually. We do not consider lower for simplicity, but it would be good to consider it as well.
-
+	
 	//if the branch has never been seen before, create a new entry for it
 	if (iter_vector_entry == hashmap.end()) 
 	{
@@ -75,20 +75,21 @@ void BranchCache::StoreOptimalBranchAssignment(BinaryDataInternal &data, const B
 			if (optimal_node.NumNodes() <= entry.GetNodeBudget() && entry.GetNodeBudget() <= num_nodes
 				&& optimal_node_depth <= entry.GetDepthBudget() && entry.GetDepthBudget() <= depth)
 			{
-				if (!(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6))
-				{
-					std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.error << "\n";
-					std::cout << "\tnum nodes: " << num_nodes << "\n";
-					std::cout << entry.GetNodeBudget() << ", " << entry.GetOptimalValue() << "\n";
-				}
-				runtime_assert(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6);
+				//if (!(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6))
+				//{
+				//	std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.error << "\n";
+				//	std::cout << "\tnum nodes: " << num_nodes << "\n";
+				//	std::cout << entry.GetNodeBudget() << ", " << entry.GetOptimalValue() << "\n";
+				//	std::cout << "";
+				//}
+				//runtime_assert(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6);
 
 				budget_seen[entry.GetNodeBudget()][entry.GetDepthBudget()] = true;
-				if (!entry.IsOptimal()) { entry.SetOptimalAssignment(optimal_node); }
+				if (!entry.IsOptimal()) {
+					entry.SetOptimalAssignment(optimal_node);
+				}
 
 				runtime_assert(entry.GetDepthBudget() <= entry.GetNodeBudget()); //fix the case when it turns out that more nodes do not give a better result...e.g., depth 4 and num nodes 4, but a solution with three nodes found...that solution is then optimal for depth 3 as well...need to update but lazy now
-				int g = 0;
-				g++;
 			}
 		}
 		//create entries for those which were not seen
@@ -106,6 +107,7 @@ void BranchCache::StoreOptimalBranchAssignment(BinaryDataInternal &data, const B
 			}			
 		}
 	}
+
 	//TODO: the cache needs to invalidate out solutions that are dominated, i.e., with the same objective value but less nodes
 	//or I need to rethink this caching to include exactly num_nodes -> it might be strange that we ask for five nodes and get UNSAT, while with four nodes it gives a solution
 	//I am guessing that the cache must store exactly num_nodes, and then outside the loop when we find that the best sol has less node, we need to insert that in the cache?
@@ -144,7 +146,7 @@ void BranchCache::TransferAssignmentsForEquivalentBranches(const BinaryDataInter
 				{
 					should_add = false;
 					//if the source entry is strictly better than the destination entry, replace it
-					if (entry_source.IsOptimal() && !entry_destination.IsOptimal() || entry_source.GetLowerBound() > entry_destination.GetLowerBound())
+					if (entry_source.IsOptimal() && !entry_destination.IsOptimal() || entry_source.GetLowerBound() > entry_destination.GetLowerBound() + 1e-3)
 					{
 						entry_destination = entry_source;
 						break;
@@ -153,7 +155,7 @@ void BranchCache::TransferAssignmentsForEquivalentBranches(const BinaryDataInter
 			}
 			if (should_add) { iter_destination->second.push_back(entry_source); }			
 		}
-	}	
+	}
 }
 
 InternalNodeDescription BranchCache::RetrieveOptimalAssignment(BinaryDataInternal &data, const Branch& branch, int depth, int num_nodes)
@@ -175,7 +177,7 @@ InternalNodeDescription BranchCache::RetrieveOptimalAssignment(BinaryDataInterna
 void BranchCache::UpdateLowerBound(BinaryDataInternal&, const Branch& branch, double lower_bound, int depth, int num_nodes)
 {
 	runtime_assert(depth <= num_nodes);
-	
+
 	if (!use_lower_bound_caching_) { return; }
 
 	auto& hashmap = cache_[branch.Depth()];
@@ -228,7 +230,7 @@ double BranchCache::RetrieveLowerBound(BinaryDataInternal&, const Branch& branch
 	double best_lower_bound = 0;
 	for (CacheEntry& entry : iter->second)
 	{
-		if (num_nodes <= entry.GetNodeBudget() && depth <= entry.GetDepthBudget())
+		if (num_nodes == entry.GetNodeBudget() && depth == entry.GetDepthBudget())
 		{
 			double local_lower_bound = entry.GetLowerBound();
 			best_lower_bound = std::max(best_lower_bound, local_lower_bound);

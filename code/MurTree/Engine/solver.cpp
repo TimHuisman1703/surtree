@@ -111,12 +111,12 @@ SolverResult Solver::Solve(ParameterHandler& parameters)
 	int max_num_nodes = (int)parameters.GetIntegerParameter("max-num-nodes");
 	if (parameters.GetBooleanParameter("all-trees") || sparse_coefficient > 0) { min_num_nodes = 1; }
 	if (verbose_) std::cout << "Leaf value: " << best_solution.Error() << "\n";
-	for (int num_nodes = min_num_nodes; num_nodes <= max_num_nodes; num_nodes++)
+	for (int num_nodes = std::max(min_num_nodes, 1); num_nodes <= max_num_nodes; num_nodes++)
 	{
 		if (!stopwatch_.IsWithinTimeLimit()) { break; }
 
 		if (verbose_) std::cout << "num nodes: " << num_nodes << " " << stopwatch_.TimeElapsedInSeconds() << "s" << std::endl;
-		
+
 		int max_depth = std::min(int(parameters.GetIntegerParameter("max-depth")), num_nodes);
 		double error_upper_bound = std::min(best_solution.SparseObjective(sparse_coefficient) - sparse_coefficient * num_nodes, parameters.GetFloatParameter("upper-bound") - sparse_coefficient * num_nodes);
 		InternalNodeDescription current_best = SolveSubtree(
@@ -128,13 +128,16 @@ SolverResult Solver::Solve(ParameterHandler& parameters)
 		);
 
 		runtime_assert(current_best.IsInfeasible() || current_best.SparseObjective(sparse_coefficient) <= best_solution.SparseObjective(sparse_coefficient));
-		if (current_best.IsFeasible()) 
-		{ 
-			runtime_assert(current_best.SparseObjective(sparse_coefficient) <= best_solution.SparseObjective(sparse_coefficient));
-			if (verbose_) std::cout << "Tree with " << num_nodes << " nodes: error = " << current_best.error << "; time = " << stopwatch_.TimeElapsedInSeconds() << "\n";
-			best_solution = current_best; 
-			if (verbose_) std::cout << best_solution.SparseObjective(sparse_coefficient) << "\n";
+
+		if (current_best.IsInfeasible()) {
+			if (verbose_) std::cout << "Infeasible, terminating search\n";
+			break;
 		}
+
+		runtime_assert(current_best.SparseObjective(sparse_coefficient) <= best_solution.SparseObjective(sparse_coefficient));
+		if (verbose_) std::cout << "Tree with " << num_nodes << " nodes: error = " << current_best.error << "; time = " << stopwatch_.TimeElapsedInSeconds() << "\n";
+		best_solution = current_best;
+		if (verbose_) std::cout << best_solution.SparseObjective(sparse_coefficient) << "\n";
 	}
 
 	SolverResult result;
@@ -195,7 +198,7 @@ DecisionNode* Solver::ConstructOptimalTree(BinaryDataInternal& data, Branch& bra
 	{
 		double theta = LeafTheta(data);
 		return DecisionNode::CreateLabelNode(theta);
-	}	
+	}
 	//recover the optimal assignment from cache - however note that not all nodes are in the cache, see next IF
 	else if (cache_->IsOptimalAssignmentCached(data, branch, max_depth, num_nodes))
 	{
@@ -277,7 +280,7 @@ DecisionNode* Solver::ConstructOptimalTree(BinaryDataInternal& data, Branch& bra
 	}
 	else
 	{
-		runtime_assert(1 == 2); //I think this is no longer used
+		runtime_assert(1 == 3); //I think this is no longer used
 
 		if (max_depth != 1) { std::cout << "OBVIOUSLY WRONG\n"; return DecisionNode::CreateLabelNode(LeafTheta(data)); }
 
@@ -286,7 +289,7 @@ DecisionNode* Solver::ConstructOptimalTree(BinaryDataInternal& data, Branch& bra
 	
 		SpecialisedDecisionTreeSolverResult2 results = specialised_solver1_->Solve(data);
 		
-		if (results.node_budget_one.error == LeafError(data))
+		if (std::abs(results.node_budget_one.error - LeafError(data)) < 1e-4)
 		{
 			return DecisionNode::CreateLabelNode(LeafTheta(data));
 		}
@@ -313,7 +316,7 @@ DecisionNode* Solver::ConstructOptimalTree(BinaryDataInternal& data, Branch& bra
 InternalNodeDescription Solver::SolveSubtree(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, double upper_bound)
 {//corresponds to Algorithm 1 from the paper
 	runtime_assert(0 <= max_depth && max_depth <= num_nodes);
-	
+
 	if (!stopwatch_.IsWithinTimeLimit()) { return CreateInfeasibleNodeDescription(); }
 	
 	// Prune based on upper bound
@@ -325,7 +328,7 @@ InternalNodeDescription Solver::SolveSubtree(BinaryDataInternal& data, Branch& b
 	// Use cached subtrees if possible (Section 4.5)
 	InternalNodeDescription cached_optimal_node = cache_->RetrieveOptimalAssignment(data, branch, max_depth, num_nodes);
 	if (!cached_optimal_node.IsInfeasible())
-	{		
+	{
 		return (cached_optimal_node.Error() >= upper_bound ? CreateInfeasibleNodeDescription() : cached_optimal_node);
 	}
 
@@ -342,7 +345,7 @@ InternalNodeDescription Solver::SolveSubtree(BinaryDataInternal& data, Branch& b
 	if (lower_bound >= upper_bound) { return CreateInfeasibleNodeDescription(); }
 	
 	// If the leaf node is already at the lower bound, no need to look further
-	if (lower_bound == LeafError(data)) { return CreateLeafNodeDescription(data); }
+	if (lower_bound >= LeafError(data)) { return CreateLeafNodeDescription(data); }
 
 	// Use Algorithm 4 for small trees from Section 4.3
 	// Note that the specialised algorithm updates the cache
@@ -358,7 +361,9 @@ InternalNodeDescription Solver::SolveSubtreeGeneralCase(BinaryDataInternal& data
 
 	//Use a single classification node as an initial solution
 	InternalNodeDescription best_node = CreateInfeasibleNodeDescription();
-	if (LeafError(data) < upper_bound) { best_node = CreateLeafNodeDescription(data); }
+	if (LeafError(data) < upper_bound) { 
+		best_node = CreateLeafNodeDescription(data);
+	}
 
 	SplitBinaryData& split_data = *splits_data[max_depth];
 
@@ -373,11 +378,13 @@ InternalNodeDescription Solver::SolveSubtreeGeneralCase(BinaryDataInternal& data
 		int splitting_feature = feature_selectors_[max_depth]->PopNextFeature();
 		if (!stopwatch_.IsWithinTimeLimit()) { return CreateInfeasibleNodeDescription(); }
 		// If the current best node is the optimal node, stop
-		if (best_node.IsFeasible() && best_node.Error() == branch_lower_bound) { break; }
+		if (best_node.IsFeasible() && best_node.Error() <= branch_lower_bound) { break; }
 
 		split_data.SplitData(splitting_feature, data);
-		//Nondiscriminatory splits should be avoided
-		if (split_data.data_without_feature.Size() == 0 || split_data.data_with_feature.Size() == 0) { continue; } 
+		// Splits where one child does not have any events should be avoided
+		if (split_data.events_without_feature == 0 || split_data.events_with_feature == 0) {
+			continue;
+		}
 
 		Branch left_branch = Branch::LeftChildBranch(branch, splitting_feature);
 		Branch right_branch = Branch::RightChildBranch(branch, splitting_feature);
@@ -437,8 +444,8 @@ InternalNodeDescription Solver::SolveSubtreeGeneralCase(BinaryDataInternal& data
 				InternalNodeDescription right_child = (first_child.branch == right_branch ? first_child_solution : second_child_solution);
 				InternalNodeDescription current_node = CombineLeftAndRightChildren(splitting_feature, left_child, right_child);
 				//this condition always holds, right?
-				runtime_assert(best_node.IsInfeasible() || current_node.Error() <= best_node.Error());
-				if (best_node.IsInfeasible() || current_node.Error() <= best_node.Error())
+				runtime_assert(best_node.IsInfeasible() || current_node.Error() < best_node.Error() + 1e-4);
+				if (best_node.IsInfeasible() || current_node.Error() < best_node.Error() + 1e-4)
 				{
 					best_node = current_node;
 					if (best_node.Error() == branch_lower_bound) { break; }
@@ -458,7 +465,7 @@ InternalNodeDescription Solver::SolveSubtreeGeneralCase(BinaryDataInternal& data
 	// Cache the optimal solution...
 	if (best_node.IsFeasible())
 	{
-		runtime_assert(best_node.Error() <= upper_bound);
+		runtime_assert(best_node.Error() < upper_bound + 1e-4);
 		cache_->StoreOptimalBranchAssignment(data, branch, best_node, max_depth, num_nodes);
 		similarity_lower_bound_computer_->UpdateArchive(data, branch, max_depth);
 	}
@@ -590,7 +597,7 @@ ChildSubtreeOrdering Solver::GetSortedChildren(ChildSubtreeInfo& left_child, Chi
 
 double Solver::LeafTheta(BinaryDataInternal& data)
 {
-	double event_sum = 0;
+	int event_sum = 0;
 	double hazard_sum = 0;
 
 	for (FeatureVectorBinary* fv : data.GetInstances())
@@ -599,7 +606,7 @@ double Solver::LeafTheta(BinaryDataInternal& data)
 		hazard_sum += fv->GetHazard();
 	}
 
-	if (hazard_sum < 1e-9)
+	if (event_sum == 0)
 		return 0;
 
 	return event_sum / hazard_sum;
@@ -609,6 +616,9 @@ double Solver::LeafError(BinaryDataInternal& data)
 {
 	double error = 0;
 	double theta = LeafTheta(data);
+
+	if (theta < 1e-9)
+		return 0;
 
 	for (FeatureVectorBinary* fv : data.GetInstances())
 	{

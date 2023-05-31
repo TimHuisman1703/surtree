@@ -62,7 +62,7 @@ double NelsonAalenEstimator::CumulativeHazard(double time, bool spot_on) {
 		return map[time];
 
 	int left = 0;
-	int right = keys.size() - 1;
+	int right = (int)keys.size() - 1;
 	while (left != right) {
 		int mid = (left + right + 1) / 2;
 

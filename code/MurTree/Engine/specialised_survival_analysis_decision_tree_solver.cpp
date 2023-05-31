@@ -20,7 +20,7 @@ SpecialisedSurvivalAnalaysisDecisionTreeSolver::SpecialisedSurvivalAnalaysisDeci
 }
 
 SpecialisedDecisionTreeSolverResult2 MurTree::SpecialisedSurvivalAnalaysisDecisionTreeSolver::Solve(BinaryDataInternal& data)
-{	
+{
 	bool changes_made = Initialise(data);
 	if (!changes_made) { return previous_output_; }
 	ComputeOptimalTreesBasedOnFrequencyCounts();
@@ -58,16 +58,18 @@ void SpecialisedSurvivalAnalaysisDecisionTreeSolver::ComputeOptimalTreesBasedOnF
 	clock_t clock_start = clock();
 	for (int f1 = 0; f1 < num_features_; f1++)
 	{
-		double penalty_left_error = penalty_computer_.PenaltyBranchZeroZero(f1, f1);
-		double penalty_right_error = penalty_computer_.PenaltyBranchOneOne(f1, f1);
+		double penalty_branch_zero = penalty_computer_.PenaltyBranchZeroZero(f1, f1);
+		double penalty_branch_one = penalty_computer_.PenaltyBranchOneOne(f1, f1);
+
+		bool has_event_branch_zero = penalty_computer_.HasEventBranchZeroZero(f1, f1);
+		bool has_event_branch_one = penalty_computer_.HasEventBranchOneOne(f1, f1);
 
 		//update the misclassification for the tree with only one node
-		double penalty_one_node = (penalty_left_error + penalty_right_error);
-
-		if (penalty_one_node < results_.node_budget_one.Error())
+		double penalty_one_node = penalty_branch_zero + penalty_branch_one;
+		if (has_event_branch_zero && has_event_branch_one && penalty_one_node < results_.node_budget_one.Error())
 		{
 			results_.node_budget_one.feature = f1;
-			results_.node_budget_one.error = (penalty_left_error + penalty_right_error);
+			results_.node_budget_one.error = penalty_one_node;
 			results_.node_budget_one.num_nodes_left = 0;
 			results_.node_budget_one.num_nodes_right = 0;
 		}
@@ -79,17 +81,28 @@ void SpecialisedSurvivalAnalaysisDecisionTreeSolver::ComputeOptimalTreesBasedOnF
 			double penalty_branch_zero_one = penalty_computer_.PenaltyBranchZeroOne(f1, f2);
 			double penalty_branch_zero_zero = penalty_computer_.PenaltyBranchZeroZero(f1, f2);
 
-			UpdateBestLeftChild(f1, f2, penalty_branch_zero_one + penalty_branch_zero_zero);
-			UpdateBestRightChild(f1, f2, penalty_branch_one_one + penalty_branch_one_zero);
+			bool has_event_branch_one_one = penalty_computer_.HasEventBranchOneOne(f1, f2);
+			bool has_event_branch_one_zero = penalty_computer_.HasEventBranchOneZero(f1, f2);
+			bool has_event_branch_zero_one = penalty_computer_.HasEventBranchZeroOne(f1, f2);
+			bool has_event_branch_zero_zero = penalty_computer_.HasEventBranchZeroZero(f1, f2);
 
-			UpdateBestLeftChild(f2, f1, penalty_branch_one_zero + penalty_branch_zero_zero);
-			UpdateBestRightChild(f2, f1, penalty_branch_one_one + penalty_branch_zero_one);
+			if (has_event_branch_zero_one && has_event_branch_zero_zero)
+				UpdateBestLeftChild(f1, f2, penalty_branch_zero_one + penalty_branch_zero_zero);
+			if (has_event_branch_one_one && has_event_branch_one_zero)
+				UpdateBestRightChild(f1, f2, penalty_branch_one_one + penalty_branch_one_zero);
+
+			if (has_event_branch_one_zero && has_event_branch_zero_zero)
+				UpdateBestLeftChild(f2, f1, penalty_branch_one_zero + penalty_branch_zero_zero);
+			if (has_event_branch_one_one && has_event_branch_zero_one)
+				UpdateBestRightChild(f2, f1, penalty_branch_one_one + penalty_branch_zero_one);
 
 			//update the best tree with two nodes in case a better tree has been found
 			//use f1 as root
-			UpdateBestTwoNodeAssignment(f1, penalty_left_error, penalty_right_error);
+			if (has_event_branch_zero && has_event_branch_one)
+				UpdateBestTwoNodeAssignment(f1, penalty_branch_zero, penalty_branch_one);
 			//use f2 as root
-			UpdateBestTwoNodeAssignment(f2, penalty_computer_.PenaltyBranchZeroZero(f2, f2), penalty_computer_.PenaltyBranchOneOne(f2, f2));
+			if (penalty_computer_.HasEventBranchZeroZero(f2, f2) && penalty_computer_.HasEventBranchOneOne(f2, f2))
+				UpdateBestTwoNodeAssignment(f2, penalty_computer_.PenaltyBranchZeroZero(f2, f2), penalty_computer_.PenaltyBranchOneOne(f2, f2));
 		}
 		UpdateThreeNodeTreeInfo(f1); //it is important to call this after the previous loop, i.e., after calling UpdateTwoNodeTreeInfo(f1, f2) for all f2 > f1
 	}
@@ -143,8 +156,8 @@ void SpecialisedSurvivalAnalaysisDecisionTreeSolver::UpdateBestTwoNodeAssignment
 
 void SpecialisedSurvivalAnalaysisDecisionTreeSolver::UpdateThreeNodeTreeInfo(int root_feature)
 {
-	runtime_assert(best_children_error_info_[root_feature].left_child_penalty != DBL_MAX);
-	runtime_assert(best_children_error_info_[root_feature].right_child_penalty != DBL_MAX);
+	//runtime_assert(best_children_error_info_[root_feature].left_child_penalty != DBL_MAX);
+	//runtime_assert(best_children_error_info_[root_feature].right_child_penalty != DBL_MAX);
 
 	double new_penalty = best_children_error_info_[root_feature].left_child_penalty + best_children_error_info_[root_feature].right_child_penalty;
 	if (results_.node_budget_three.Error() > new_penalty)

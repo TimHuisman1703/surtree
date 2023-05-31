@@ -10,7 +10,7 @@ namespace MurTree
 {
 	SymmetricMatrixPositiveNegativeCounter2D::SymmetricMatrixPositiveNegativeCounter2D(size_t num_rows) :
 		data2d_(0),
-		num_rows_(num_rows)
+		num_rows_((uint32_t)num_rows)
 	{
 		data2d_ = new uint32_t[NumElements()];
 		ResetToZeros();

@@ -161,7 +161,7 @@ MurTree::ParameterHandler DefineParameters()
 	(
 		"cache-type",
 		"Cache type used to store computed subtrees. \"Dataset\" is more powerful than \"branch\" but may required more computational time. Need to be determined experimentally. \"Closure\" is experimental and typically slower than other options.",
-		"dataset", //default value
+		"branch", //default value
 		"Algorithmic Parameters",
 		{ "branch", "dataset", "closure" }
 	);
@@ -295,7 +295,7 @@ int main(int argc, char* argv[])
 
 		std::string file_location;
 
-		file_location = "datasetsSA\\LeukSurv.txt";
+		file_location = "datasetsSA\\veteran.txt";
 
 		// Tag for Ctrl+F-ing: SETTINGS
 
@@ -306,10 +306,10 @@ int main(int argc, char* argv[])
 		//hyper_parameter_stats_file = "datasetsTesting\\MurTreeHyperStats\\anneal_new.txt";
 		single_parameter_set_tuning = false;
 		parameters.SetIntegerParameter("duplicate-factor", 1);
-		parameters.SetStringParameter("cache-type", "dataset");// "closure";// "branch";
+		parameters.SetStringParameter("cache-type", "branch");// "closure";// "dataset";
 		parameters.SetBooleanParameter("all-trees", false);
 		parameters.SetIntegerParameter("max-depth", 5);
-		parameters.SetIntegerParameter("min-num-nodes", 31);
+		parameters.SetIntegerParameter("min-num-nodes", 0);
 		parameters.SetIntegerParameter("max-num-nodes", 31);
 		parameters.SetFloatParameter("upper-bound", DBL_MAX);//INT32_MAX
 		parameters.SetFloatParameter("sparse-coefficient", 0.0);
@@ -360,9 +360,14 @@ int main(int argc, char* argv[])
 	{
 		if (parameters.GetBooleanParameter("verbose")) { std::cout << "Optimal tree computation started!\n"; }
 		MurTree::Solver mur_tree_solver(parameters);
+		if (parameters.GetBooleanParameter("verbose")) {
+			std::cout << "Instances = " << mur_tree_solver.binary_data_->NumInstances() << ", ";
+			std::cout << "Features = " << mur_tree_solver.binary_data_->NumFeatures() << "\n";
+		}
 		clock_t clock_before_solve = clock();
 		MurTree::SolverResult mur_tree_solver_result = mur_tree_solver.Solve(parameters);
-				
+		clock_t clock_after_solve = clock();
+		
 		if (parameters.GetBooleanParameter("verbose"))
 		{
 			if (mur_tree_solver_result.decision_tree_)
@@ -371,7 +376,7 @@ int main(int argc, char* argv[])
 				std::cout << "DEPTH: " << mur_tree_solver_result.decision_tree_->Depth() << "\n";
 				std::cout << "NUM NODES: " << mur_tree_solver_result.decision_tree_->NumNodes() << "\n";
 				std::cout << "TIME: " << stopwatch.TimeElapsedInSeconds() << " seconds\n";
-				std::cout << "CLOCKS FOR SOLVE: " << double(clock() - clock_before_solve) / CLOCKS_PER_SEC << "\n";
+				std::cout << "CLOCKS FOR SOLVE: " << double(clock_after_solve - clock_before_solve) / CLOCKS_PER_SEC << "\n";
 			}
 			else
 			{
@@ -384,7 +389,7 @@ int main(int argc, char* argv[])
 			std::ofstream out(parameters.GetStringParameter("result-file").c_str());
 			//double clock_time_total = (double(clock() - clock_before_solve) / CLOCKS_PER_SEC);
 			//out << clock_time_total << "\n";
-			out << "Time: " << stopwatch.TimeElapsedInSeconds() << "s\n";
+			out << "Time: " << double(clock_after_solve - clock_before_solve) / CLOCKS_PER_SEC << "\n";
 			
 			if (mur_tree_solver_result.decision_tree_) //print stats if finished within the allocated time
 			{
