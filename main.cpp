@@ -106,7 +106,7 @@ MurTree::ParameterHandler DefineParameters()
 	parameters.DefineStringParameter
 	(
 		"result-file",
-		"The results of the algorithm are printed in the provided file, using for simple benchmarking. The output file contains the runtime, misclassification score, and number of cache entries. Leave blank to avoid printing.",
+		"The results of the algorithm are printed in the provided file, used for simple benchmarking. The output file contains the runtime, misclassification score, and number of cache entries. Leave blank to avoid printing.",
 		"", //default value
 		"Main Parameters"
 	);
@@ -125,7 +125,7 @@ MurTree::ParameterHandler DefineParameters()
 	(
 		"similarity-lower-bound",
 		"Activate similarity-based lower bounding. Disabling this option may be better for some benchmarks, but on most of our tested datasets keeping this on was beneficial.",
-		true,
+		false,
 		"Algorithmic Parameters"
 	);
 
@@ -306,14 +306,14 @@ int main(int argc, char* argv[])
 		//hyper_parameter_stats_file = "datasetsTesting\\MurTreeHyperStats\\anneal_new.txt";
 		single_parameter_set_tuning = false;
 		parameters.SetIntegerParameter("duplicate-factor", 1);
-		parameters.SetStringParameter("cache-type", "branch");// "closure";// "dataset";
+		parameters.SetStringParameter("cache-type", "dataset");// "closure";// "dataset";
 		parameters.SetBooleanParameter("all-trees", false);
-		parameters.SetIntegerParameter("max-depth", 5);
-		parameters.SetIntegerParameter("min-num-nodes", 0);
-		parameters.SetIntegerParameter("max-num-nodes", 31);
+		parameters.SetIntegerParameter("max-depth", 6);
+		parameters.SetIntegerParameter("min-num-nodes", 63);
+		parameters.SetIntegerParameter("max-num-nodes", 63);
 		parameters.SetFloatParameter("upper-bound", DBL_MAX);//INT32_MAX
 		parameters.SetFloatParameter("sparse-coefficient", 0.0);
-		parameters.SetBooleanParameter("similarity-lower-bound", true);
+		parameters.SetBooleanParameter("similarity-lower-bound", false);
 		parameters.SetStringParameter("node-selection", "dynamic");
 		parameters.SetStringParameter("feature-ordering", "in-order");
 

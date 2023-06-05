@@ -80,7 +80,6 @@ void BranchCache::StoreOptimalBranchAssignment(BinaryDataInternal &data, const B
 				//	std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.error << "\n";
 				//	std::cout << "\tnum nodes: " << num_nodes << "\n";
 				//	std::cout << entry.GetNodeBudget() << ", " << entry.GetOptimalValue() << "\n";
-				//	std::cout << "";
 				//}
 				//runtime_assert(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6);
 

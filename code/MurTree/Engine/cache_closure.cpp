@@ -81,16 +81,18 @@ namespace MurTree
 				if (optimal_node.NumNodes() <= entry.GetNodeBudget() && entry.GetNodeBudget() <= num_nodes
 					&& optimal_node_depth <= entry.GetDepthBudget() && entry.GetDepthBudget() <= depth)
 				{
-					if (!(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6))
-					{
-						std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.error << "\n";
-						std::cout << "\tnum nodes: " << num_nodes << "\n";
-						std::cout << entry.GetNodeBudget() << ", " << entry.GetOptimalValue() << "\n";
-					}
-					runtime_assert(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6);
+					//if (!(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6))
+					//{
+					//	std::cout << "opt node: " << optimal_node.NumNodes() << ", " << optimal_node.error << "\n";
+					//	std::cout << "\tnum nodes: " << num_nodes << "\n";
+					//	std::cout << entry.GetNodeBudget() << ", " << entry.GetOptimalValue() << "\n";
+					//}
+					//runtime_assert(!entry.IsOptimal() || std::abs(entry.GetOptimalValue() - optimal_node.Error()) < 1e-6);
 
 					budget_seen[entry.GetNodeBudget()][entry.GetDepthBudget()] = true;
-					if (!entry.IsOptimal()) { entry.SetOptimalAssignment(optimal_node); }
+					if (!entry.IsOptimal()) {
+						entry.SetOptimalAssignment(optimal_node);
+					}
 
 					runtime_assert(entry.GetDepthBudget() <= entry.GetNodeBudget()); //fix the case when it turns out that more nodes do not give a better result...e.g., depth 4 and num nodes 4, but a solution with three nodes found...that solution is then optimal for depth 3 as well...need to update but lazy now
 				}
@@ -198,7 +200,7 @@ namespace MurTree
 		double best_lower_bound = 0;
 		for (CacheEntry& entry : iter->second)
 		{
-			if (num_nodes <= entry.GetNodeBudget() && depth <= entry.GetDepthBudget())
+			if (num_nodes == entry.GetNodeBudget() && depth == entry.GetDepthBudget())
 			{
 				double local_lower_bound = entry.GetLowerBound();
 				best_lower_bound = std::max(best_lower_bound, local_lower_bound);

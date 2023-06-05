@@ -137,7 +137,6 @@ SolverResult Solver::Solve(ParameterHandler& parameters)
 		runtime_assert(current_best.SparseObjective(sparse_coefficient) <= best_solution.SparseObjective(sparse_coefficient));
 		if (verbose_) std::cout << "Tree with " << num_nodes << " nodes: error = " << current_best.error << "; time = " << stopwatch_.TimeElapsedInSeconds() << "\n";
 		best_solution = current_best;
-		if (verbose_) std::cout << best_solution.SparseObjective(sparse_coefficient) << "\n";
 	}
 
 	SolverResult result;
@@ -505,6 +504,16 @@ InternalNodeDescription Solver::SolveTerminalNode(BinaryDataInternal& data, Bran
 		results = specialised_solver2_->Solve(data);
 	}
 
+	// It might be that a node with a lower depth or fewer nodes is better than one that recurses deeper,
+	//   due to the at-least-one-event-per-leaf constraint. Therefore we need to check whether the nodes
+	//   can be better when using less nodes
+	if (results.node_budget_one.error < results.node_budget_two.error) {
+		results.node_budget_two = results.node_budget_one;
+	}
+	if (results.node_budget_two.error < results.node_budget_three.error) {
+		results.node_budget_three = results.node_budget_two;
+	}
+
 	stats_.time_in_terminal_node += double(clock() - clock_start) / CLOCKS_PER_SEC;
 
 	std::vector<InternalNodeDescription> optimised_roots;
@@ -606,8 +615,7 @@ double Solver::LeafTheta(BinaryDataInternal& data)
 		hazard_sum += fv->GetHazard();
 	}
 
-	if (event_sum == 0)
-		return 0;
+	runtime_assert(event_sum > 1e-9);
 
 	return event_sum / hazard_sum;
 }
@@ -616,9 +624,6 @@ double Solver::LeafError(BinaryDataInternal& data)
 {
 	double error = 0;
 	double theta = LeafTheta(data);
-
-	if (theta < 1e-9)
-		return 0;
 
 	for (FeatureVectorBinary* fv : data.GetInstances())
 	{
