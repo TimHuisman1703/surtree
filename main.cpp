@@ -111,14 +111,6 @@ MurTree::ParameterHandler DefineParameters()
 		"Algorithmic Parameters"
 	);
 
-	parameters.DefineBooleanParameter
-	(
-		"similarity-lower-bound",
-		"Activate similarity-based lower bounding. Disabling this option may be better for some benchmarks, but on most of our tested datasets keeping this on was beneficial.",
-		false,
-		"Algorithmic Parameters"
-	);
-
 	parameters.DefineStringParameter
 	(
 		"node-selection",
@@ -296,7 +288,6 @@ int main(int argc, char* argv[])
 		parameters.SetIntegerParameter("max-num-nodes", 3);
 		parameters.SetFloatParameter("upper-bound", DBL_MAX);//INT32_MAX
 		parameters.SetFloatParameter("sparse-coefficient", 0.0);
-		parameters.SetBooleanParameter("similarity-lower-bound", false);
 		parameters.SetStringParameter("node-selection", "dynamic");
 		parameters.SetStringParameter("feature-ordering", "in-order");
 

@@ -22,7 +22,6 @@ Solver::Solver(ParameterHandler& parameters):
 	binary_data_(0),
 	feature_selectors_(100, 0),
 	splits_data(100, 0),
-	similarity_lower_bound_computer_(0),
 	specialised_solver1_(0),
 	specialised_solver2_(0)
 {
@@ -51,9 +50,6 @@ Solver::Solver(ParameterHandler& parameters):
 		else if (parameters.GetStringParameter("feature-ordering") == "random") { feature_selectors_[i] = new FeatureSelectorRandom(num_features_); }
 		else { std::cout << "Unknown feature ordering strategy!\n"; exit(1); }
 	}
-
-	similarity_lower_bound_computer_ = new SimilarityLowerBoundComputer(100, 100, binary_data_->Size());
-	if (parameters.GetBooleanParameter("similarity-lower-bound") == false) { similarity_lower_bound_computer_->Disable(); }
 
 	if (parameters.GetStringParameter("cache-type") == "branch") { cache_ = new BranchCache(100); }
 	else if (parameters.GetStringParameter("cache-type") == "dataset") { cache_ = new DatasetCache(binary_data_->Size()); }
@@ -331,21 +327,6 @@ InternalNodeDescription Solver::SolveSubtree(BinaryDataInternal& data, Branch& b
 		return (cached_optimal_node.Error() >= upper_bound ? CreateInfeasibleNodeDescription() : cached_optimal_node);
 	}
 
-	// Update the cache using the similarity-based lower bound (Section 4.4)
-	// Note that an optimal solution may be found in the process
-	bool updated_optimal_solution = UpdateCacheUsingSimilarity(data, branch, max_depth, num_nodes);
-	if (updated_optimal_solution)
-	{
-		InternalNodeDescription optimal_node = cache_->RetrieveOptimalAssignment(data, branch, max_depth, num_nodes);
-		return (optimal_node.Error() >= upper_bound ? CreateInfeasibleNodeDescription() : optimal_node);
-	}
-	double lower_bound = cache_->RetrieveLowerBound(data, branch, max_depth, num_nodes);
-	// Prune if the lower bound exceeds the upper bound, since no tree can be found within the upper bound requirement (Section 4.5.4)
-	if (lower_bound >= upper_bound) { return CreateInfeasibleNodeDescription(); }
-	
-	// If the leaf node is already at the lower bound, no need to look further
-	if (lower_bound >= LeafError(data)) { return CreateLeafNodeDescription(data); }
-
 	// Use Algorithm 4 for small trees from Section 4.3
 	// Note that the specialised algorithm updates the cache
 	if (IsTerminalNode(max_depth, num_nodes)) { return SolveTerminalNode(data, branch, max_depth, num_nodes, upper_bound); }
@@ -461,23 +442,13 @@ InternalNodeDescription Solver::SolveSubtreeGeneralCase(BinaryDataInternal& data
 
 	if (!stopwatch_.IsWithinTimeLimit()) { return CreateInfeasibleNodeDescription(); }
 
-	// Cache the optimal solution...
+	// Cache the optimal solution
 	if (best_node.IsFeasible())
 	{
 		runtime_assert(best_node.Error() < upper_bound + 1e-4);
 		cache_->StoreOptimalBranchAssignment(data, branch, best_node, max_depth, num_nodes);
-		similarity_lower_bound_computer_->UpdateArchive(data, branch, max_depth);
 	}
-	// ...or record the lower bound (Section 4.5.3)
-	else
-	{//is infeasible
-		if (lower_bound_refined == DBL_MAX) { lower_bound_refined = 0; }
 
-		lower_bound_refined = std::max(lower_bound_refined, upper_bound);
-		double new_lower_bound = std::max(branch_lower_bound, lower_bound_refined);
-		cache_->UpdateLowerBound(data, branch, new_lower_bound, max_depth, num_nodes);
-		similarity_lower_bound_computer_->UpdateArchive(data, branch, max_depth);
-	}
 	return best_node;
 }
 
@@ -553,18 +524,7 @@ InternalNodeDescription Solver::SolveTerminalNode(BinaryDataInternal& data, Bran
 	if (num_nodes >= 2 && IsNodeBetter(optimised_roots[1], best_root_node)) { best_root_node = optimised_roots[1]; }
 	if (num_nodes == 3 && IsNodeBetter(optimised_roots[2], best_root_node)) { best_root_node = optimised_roots[2]; }
 
-	similarity_lower_bound_computer_->UpdateArchive(data, branch, max_depth);
-
 	return (best_root_node.Error() >= upper_bound ? CreateInfeasibleNodeDescription() : best_root_node);
-}
-
-bool Solver::UpdateCacheUsingSimilarity(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes)
-{
-	// Compute the similarity-based lower bound (Section 4.4) and update current bound
-	PairLowerBoundOptimal result = similarity_lower_bound_computer_->ComputeLowerBound(data, branch, max_depth, num_nodes, cache_);
-	if (result.optimal) { return true; }
-	if (result.lower_bound > 0) { cache_->UpdateLowerBound(data, branch, result.lower_bound, max_depth, num_nodes); }
-	return false;
 }
 
 InternalNodeDescription Solver::CreateInfeasibleNodeDescription()

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "similarity_lower_bound_computer.h"
 #include "abstract_cache.h"
 #include "feature_selector_abstract.h"
 #include "specialised_decision_tree_solver_abstract.h"
@@ -37,7 +36,6 @@ public:
 	InternalNodeDescription SolveSubtree(BinaryDataInternal &data, Branch &branch, int max_depth, int num_nodes, double upper_bound);
 	InternalNodeDescription SolveSubtreeGeneralCase(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, double upper_bound);
 	InternalNodeDescription SolveTerminalNode(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes, double upper_bound);
-	bool UpdateCacheUsingSimilarity(BinaryDataInternal& data, Branch& branch, int max_depth, int num_nodes);//returns true if the method updated the optimal solution of the branch; otherwise it only (tries) to increase the lower bound
 	
 	InternalNodeDescription CreateInfeasibleNodeDescription();
 	InternalNodeDescription CreateLeafNodeDescription(BinaryDataInternal& data);
@@ -60,7 +58,6 @@ public:
 	Stopwatch stopwatch_;
 	std::vector<SplitBinaryData*> splits_data;
 	std::vector<FeatureSelectorAbstract*> feature_selectors_;
-	SimilarityLowerBoundComputer *similarity_lower_bound_computer_;
 	SpecialisedDecisionTreeSolverAbstract* specialised_solver1_, *specialised_solver2_;
 };
 }//end namespace MurTree
