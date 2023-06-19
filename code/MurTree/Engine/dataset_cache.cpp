@@ -197,7 +197,7 @@ double DatasetCache::RetrieveLowerBound(BinaryDataInternal &data, const Branch &
 	double best_lower_bound = 0;
 	for (CacheEntry& entry : iter->second)
 	{
-		if (num_nodes == entry.GetNodeBudget() && depth == entry.GetDepthBudget())
+		if (num_nodes <= entry.GetNodeBudget() && depth <= entry.GetDepthBudget())
 		{
 			double local_lower_bound = entry.GetLowerBound();
 			best_lower_bound = std::max(best_lower_bound, local_lower_bound);

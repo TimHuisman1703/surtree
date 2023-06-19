@@ -59,16 +59,6 @@ MurTree::ParameterHandler DefineParameters()
 
 	parameters.DefineIntegerParameter
 	(
-		"min-num-nodes",
-		"Minimum number of *decision/feature nodes* allowed.",
-		0, //default value
-		"Main Parameters",
-		0,
-		INT32_MAX
-	);
-
-	parameters.DefineIntegerParameter
-	(
 		"max-num-nodes",
 		"Maximum number of *decision/feature nodes* allowed. Note that a tree with k feature nodes has k+1 leaf nodes.",
 		7, //default value
@@ -222,12 +212,6 @@ void CheckParameters(MurTree::ParameterHandler& parameters)
 		std::cout << "Error: No file given!\n"; exit(1);
 	}
 
-	if (parameters.GetIntegerParameter("min-num-nodes") > parameters.GetIntegerParameter("max-num-nodes"))
-	{
-		std::cout << "Error: The minimum number of nodes is greater than the maximum number of nodes!\n";
-		exit(1);
-	}
-
 	if (parameters.GetIntegerParameter("max-depth") > parameters.GetIntegerParameter("max-num-nodes"))
 	{
 		std::cout << "Error: The depth parameter is greater than the number of nodes!\n";
@@ -256,18 +240,18 @@ void CheckParameters(MurTree::ParameterHandler& parameters)
 void PrintTree(MurTree::DecisionNode* node, std::ofstream& out)
 {
 	if (node->IsLabelNode()) {
-		out << "{\"theta\":";
+		out << "[";
 		out << node->theta_;
-		out << "}";
+		out << "]";
 	}
 	else {
-		out << "{\"feat\":";
+		out << "[";
 		out << node->feature_;
-		out << ",\"0\":";
+		out << ",";
 		PrintTree(node->left_child_, out);
-		out << ",\"1\":";
+		out << ",";
 		PrintTree(node->right_child_, out);
-		out << "}";
+		out << "]";
 	}
 }
 
@@ -295,7 +279,7 @@ int main(int argc, char* argv[])
 
 		std::string file_location;
 
-		file_location = "datasetsSA\\veteran.txt";
+		file_location = "datasetsSA\\LeukSurv.txt";
 
 		// Tag for Ctrl+F-ing: SETTINGS
 
@@ -308,9 +292,8 @@ int main(int argc, char* argv[])
 		parameters.SetIntegerParameter("duplicate-factor", 1);
 		parameters.SetStringParameter("cache-type", "dataset");// "closure";// "dataset";
 		parameters.SetBooleanParameter("all-trees", false);
-		parameters.SetIntegerParameter("max-depth", 6);
-		parameters.SetIntegerParameter("min-num-nodes", 63);
-		parameters.SetIntegerParameter("max-num-nodes", 63);
+		parameters.SetIntegerParameter("max-depth", 2);
+		parameters.SetIntegerParameter("max-num-nodes", 3);
 		parameters.SetFloatParameter("upper-bound", DBL_MAX);//INT32_MAX
 		parameters.SetFloatParameter("sparse-coefficient", 0.0);
 		parameters.SetBooleanParameter("similarity-lower-bound", false);

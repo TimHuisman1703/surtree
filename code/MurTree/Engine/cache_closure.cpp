@@ -167,7 +167,7 @@ namespace MurTree
 			bool found_corresponding_entry = false;
 			for (CacheEntry& entry : iter_vector_entry->second)
 			{
-				if (entry.GetDepthBudget() == depth && entry.GetNodeBudget() == num_nodes)
+				if (entry.GetDepthBudget() <= depth && entry.GetNodeBudget() <= num_nodes)
 				{
 					entry.UpdateLowerBound(lower_bound);
 					found_corresponding_entry = true;

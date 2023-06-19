@@ -107,11 +107,11 @@ SolverResult Solver::Solve(ParameterHandler& parameters)
 	NelsonAalenEstimator nae = { *binary_data_ };
 	Branch root_branch;
 	InternalNodeDescription best_solution = CreateLeafNodeDescription(*binary_data_);
-	int min_num_nodes = (int)parameters.GetIntegerParameter("min-num-nodes");
+	int min_num_nodes = (int)parameters.GetIntegerParameter("max-num-nodes");
 	int max_num_nodes = (int)parameters.GetIntegerParameter("max-num-nodes");
 	if (parameters.GetBooleanParameter("all-trees") || sparse_coefficient > 0) { min_num_nodes = 1; }
 	if (verbose_) std::cout << "Leaf value: " << best_solution.Error() << "\n";
-	for (int num_nodes = std::max(min_num_nodes, 1); num_nodes <= max_num_nodes; num_nodes++)
+	for (int num_nodes = min_num_nodes; num_nodes <= max_num_nodes; num_nodes++)
 	{
 		if (!stopwatch_.IsWithinTimeLimit()) { break; }
 

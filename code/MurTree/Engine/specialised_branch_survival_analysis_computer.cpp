@@ -11,11 +11,9 @@ SpecialisedBranchSurvivalAnalysisComputer::SpecialisedBranchSurvivalAnalysisComp
 	hazard_sum_(num_features),
 	event_sum_(num_features),
 	negative_log_hazard_sum_(num_features),
-	instances_amount_(num_features),
 	total_hazard_sum_(0),
 	total_event_sum_(0),
 	total_negative_log_hazard_sum_(0),
-	total_instances_amount_(0),
 	using_incremental_updates_(using_incremental_updates),
 	data_old_(num_features), 
 	data_to_remove_(num_features), 
@@ -47,11 +45,9 @@ bool SpecialisedBranchSurvivalAnalysisComputer::Initialise(BinaryDataInternal& d
 		hazard_sum_.ResetToZeros();
 		event_sum_.ResetToZeros();
 		negative_log_hazard_sum_.ResetToZeros();
-		instances_amount_.ResetToZeros();
 		total_hazard_sum_ = 0.0;
 		total_event_sum_ = 0;
 		total_negative_log_hazard_sum_ = 0.0;
-		total_instances_amount_ = 0;
 		UpdateCounts(data_new, +1);
 	}
 
@@ -68,8 +64,7 @@ double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchOneOne(int f1, in
 	double hazard_sum = hazard_sum_(f1, f2);
 	int event_sum = event_sum_(f1, f2);
 	double negative_log_hazard_sum = negative_log_hazard_sum_(f1, f2);
-	int instances_amount = instances_amount_(f1, f2);
-	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum, instances_amount);
+	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum);
 }
 
 double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchOneZero(int f1, int f2)
@@ -77,8 +72,7 @@ double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchOneZero(int f1, i
 	double hazard_sum = hazard_sum_(f1, f1) - hazard_sum_(f1, f2);
 	int event_sum = event_sum_(f1, f1) - event_sum_(f1, f2);
 	double negative_log_hazard_sum = negative_log_hazard_sum_(f1, f1) - negative_log_hazard_sum_(f1, f2);
-	int instances_amount = total_instances_amount_ - instances_amount_(f1, f2);
-	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum, instances_amount);
+	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum);
 }
 
 double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchZeroOne(int f1, int f2)
@@ -86,8 +80,7 @@ double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchZeroOne(int f1, i
 	double hazard_sum = hazard_sum_(f2, f2) - hazard_sum_(f1, f2);
 	int event_sum = event_sum_(f2, f2) - event_sum_(f1, f2);
 	double negative_log_hazard_sum = negative_log_hazard_sum_(f2, f2) - negative_log_hazard_sum_(f1, f2);
-	int instances_amount = instances_amount_(f2, f2) - instances_amount_(f1, f2);
-	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum, instances_amount);
+	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum);
 }
 
 double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchZeroZero(int f1, int f2)
@@ -95,8 +88,7 @@ double SpecialisedBranchSurvivalAnalysisComputer::PenaltyBranchZeroZero(int f1, 
 	double hazard_sum = total_hazard_sum_ - hazard_sum_(f1, f1) - hazard_sum_(f2, f2) + hazard_sum_(f1, f2);
 	int event_sum = total_event_sum_ - event_sum_(f1, f1) - event_sum_(f2, f2) + event_sum_(f1, f2);
 	double negative_log_hazard_sum = total_negative_log_hazard_sum_ - negative_log_hazard_sum_(f1, f1) - negative_log_hazard_sum_(f2, f2) + negative_log_hazard_sum_(f1, f2);
-	int instances_amount = total_instances_amount_ - instances_amount_(f1, f1) - instances_amount_(f2, f2) + instances_amount_(f1, f2);
-	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum, instances_amount);
+	return CalculateError(hazard_sum, event_sum, negative_log_hazard_sum);
 }
 
 bool SpecialisedBranchSurvivalAnalysisComputer::HasEventBranchOneOne(int f1, int f2)
@@ -119,16 +111,14 @@ bool SpecialisedBranchSurvivalAnalysisComputer::HasEventBranchZeroZero(int f1, i
 	return total_event_sum_ - event_sum_(f1, f1) - event_sum_(f2, f2) + event_sum_(f1, f2) > 0;
 }
 
-double SpecialisedBranchSurvivalAnalysisComputer::CalculateError(double hazard_sum, int event_sum, double negative_log_hazard_sum, int instances_amount)
+double SpecialisedBranchSurvivalAnalysisComputer::CalculateError(double hazard_sum, int event_sum, double negative_log_hazard_sum)
 {
 	// There has to be at least one person in a leaf who died
 	if (event_sum == 0)
 		return 0;
 
-	double theta = event_sum / hazard_sum;
 	double error = negative_log_hazard_sum
-		- event_sum * (log(theta) + 1)
-		+ hazard_sum * theta;
+		- event_sum * log(event_sum / hazard_sum);
 
 	return std::max(error, 0.0);
 }
@@ -144,12 +134,10 @@ void SpecialisedBranchSurvivalAnalysisComputer::UpdateCounts(BinaryDataInternal&
 		if (instance->GetEvent()) {
 			new_negative_log_hazard_sum = -log(hazard) * value;
 		}
-		int new_instances_amount = value;
 
 		total_hazard_sum_ += new_hazard_sum;
 		total_event_sum_ += new_event_sum;
 		total_negative_log_hazard_sum_ += new_negative_log_hazard_sum;
-		total_instances_amount_ += new_instances_amount;
 
 		int num_present_features = instance->NumPresentFeatures();
 		for (int i = 0; i < num_present_features; i++)
@@ -162,7 +150,6 @@ void SpecialisedBranchSurvivalAnalysisComputer::UpdateCounts(BinaryDataInternal&
 				hazard_sum_(f1, f2) += new_hazard_sum;
 				event_sum_(f1, f2) += new_event_sum;
 				negative_log_hazard_sum_(f1, f2) += new_negative_log_hazard_sum;
-				instances_amount_(f1, f2) += new_instances_amount;
 			}
 		}
 	}

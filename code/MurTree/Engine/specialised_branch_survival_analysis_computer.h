@@ -27,18 +27,16 @@ public:
 	bool HasEventBranchZeroOne(int f1, int f2);
 	bool HasEventBranchZeroZero(int f1, int f2);
 
-	double CalculateError(double hazard_sum, int event_sum, double negative_log_hazard_sum, int instances_amount);
+	double CalculateError(double hazard_sum, int event_sum, double negative_log_hazard_sum);
 
 	void UpdateCounts(BinaryDataInternal& data, int value);
 
 	SymmetricMatrixAccumulator hazard_sum_;
 	SymmetricMatrixCounter event_sum_;
 	SymmetricMatrixAccumulator negative_log_hazard_sum_;
-	SymmetricMatrixCounter instances_amount_;
 	double total_hazard_sum_;
 	int total_event_sum_;
 	double total_negative_log_hazard_sum_;
-	int total_instances_amount_;
 	BinaryDataInternal data_old_, data_to_remove_, data_to_add_;
 	bool using_incremental_updates_;
 };
