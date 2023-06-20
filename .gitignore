@@ -6,3 +6,4 @@ Debug/
 .pyc
 *.lnk
 VTune Profiler Results/
+.vs/
